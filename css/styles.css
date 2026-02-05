@@ -1,0 +1,407 @@
+/**
+ * ESTILOS PRINCIPALES - GILSA PEDIDOS
+ * Sistema de gestión de pedidos para GitHub Pages
+ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(135deg, #020873 0%, #1a0055 100%);
+  color: #333;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.contenedor {
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  padding: 30px;
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* HEADER */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+.header {
+  border-bottom: 3px solid #F20505;
+  padding-bottom: 20px;
+  margin-bottom: 25px;
+}
+
+.header h1 {
+  color: #020873;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.header p {
+  color: #666;
+  font-size: 14px;
+}
+
+.header .info-api {
+  margin-top: 10px;
+  font-size: 12px;
+  padding: 8px 12px;
+  background: #f0f0f0;
+  border-radius: 4px;
+  color: #999;
+}
+
+.header .info-api.connected {
+  color: #138526;
+  background: #d4edda;
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* BOTONES */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+.acciones-principales {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #020873 0%, #1a0055 100%);
+  color: white;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(2, 8, 115, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  color: #333;
+  border: 2px solid #ddd;
+}
+
+.btn-secondary:hover {
+  background: #e8e8e8;
+  border-color: #020873;
+  color: #020873;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #138526 0%, #0f6b1f 100%);
+  color: white;
+}
+
+.btn-success:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(19, 133, 38, 0.4);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #F20505 0%, #d90404 100%);
+  color: white;
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+.btn-danger:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* SECCIONES */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+.seccion {
+  margin-bottom: 30px;
+  padding: 20px;
+  background: #F2F2F2;
+  border-radius: 8px;
+  border-left: 4px solid #F20505;
+  animation: slideIn 0.3s ease;
+}
+
+.seccion-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #020873;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.fila.full {
+  grid-template-columns: 1fr;
+}
+
+.bloque {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+input, select {
+  padding: 10px 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 13px;
+  transition: all 0.3s ease;
+  background: white;
+  font-family: inherit;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #020873;
+  box-shadow: 0 0 0 3px rgba(2, 8, 115, 0.1);
+  background: #f0f4ff;
+}
+
+input:disabled, select:disabled {
+  background: #f0f0f0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+input[readonly] {
+  background: #f5f5f5;
+  color: #666;
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* TABLA */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tabla thead {
+  background: linear-gradient(135deg, #020873 0%, #1a0055 100%);
+  color: white;
+}
+
+.tabla th {
+  padding: 14px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabla td {
+  padding: 12px;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+
+.tabla tbody tr {
+  transition: background 0.2s ease;
+}
+
+.tabla tbody tr:hover {
+  background: #f9f9ff;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* RESUMEN */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+.resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-top: 25px;
+  padding-top: 25px;
+  border-top: 2px solid #e0e0e0;
+}
+
+.resumen-item {
+  padding: 15px;
+  background: linear-gradient(135deg, #138526 0%, #0f6b1f 100%);
+  border-radius: 8px;
+  color: white;
+  text-align: center;
+}
+
+.resumen-item-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  opacity: 0.9;
+  margin-bottom: 5px;
+}
+
+.resumen-item-valor {
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* VALIDACIÓN Y MENSAJES */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+.error {
+  color: #F20505;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.success-message {
+  background: #d4edda;
+  color: #155724;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  border-left: 4px solid #138526;
+}
+
+.warning-message {
+  background: #fff3cd;
+  color: #856404;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+  border-left: 4px solid #ffc107;
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* ANIMACIONES */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading {
+  display: inline-block;
+  animation: spin 1s linear infinite;
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* RESPONSIVE */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 1024px) {
+  .contenedor {
+    padding: 20px;
+  }
+
+  .fila {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .contenedor {
+    padding: 15px;
+  }
+
+  .fila {
+    grid-template-columns: 1fr;
+  }
+
+  .acciones-principales {
+    grid-template-columns: 1fr;
+  }
+
+  .header h1 {
+    font-size: 22px;
+  }
+
+  .tabla {
+    font-size: 11px;
+  }
+
+  .tabla td, .tabla th {
+    padding: 8px;
+  }
+}
+
+/* ═════════════════════════════════════════════════════════════════════ */
+/* IMPRESIÓN */
+/* ═════════════════════════════════════════════════════════════════════ */
+
+@media print {
+  body {
+    background: white;
+  }
+
+  .contenedor {
+    box-shadow: none;
+    max-width: 100%;
+  }
+
+  .acciones-principales {
+    display: none;
+  }
+
+  button {
+    display: none;
+  }
+}
