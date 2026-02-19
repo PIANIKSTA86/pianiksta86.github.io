@@ -466,7 +466,115 @@ function respuestaJSON(data, code = 200){
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function usuarioEsAdministrador(data){
+  const rol = String(data?.UsuarioRol || "").trim().toLowerCase();
+  return rol === "administrador";
+}
+
+function permiteNegativo(data){
+  const solicitado = data?.PermitirNegativo === true || String(data?.PermitirNegativo || "").toLowerCase() === "true";
+  return solicitado && usuarioEsAdministrador(data);
+}
+
+function obtenerOrigenInventarioPedido(pedido){
+  if (!pedido) return "TRANSITO";
+
+  const origenDirecto = String(pedido.OrigenInventario || "").trim().toUpperCase();
+  if (["TRANSITO", "BODEGA"].includes(origenDirecto)) {
+    return origenDirecto;
+  }
+
+  const notas = String(pedido.Notas || "");
+  const match = notas.match(/\[Origen inventario:\s*(TRANSITO|BODEGA)\]/i);
+  if (match && match[1]) {
+    return String(match[1]).toUpperCase();
+  }
+
+  return "TRANSITO";
+}
+
+function estadoComprometeInventario(estado){
+  return ["RESERVA", "PEDIDO", "ALISTAMIENTO", "DESPACHO", "FACTURACION"].includes(normalizarEstadoPipeline(estado));
+}
+
+function calcularCantidadComprometida(productoID, origenInventario, pedidoExcluirID){
+  const detalles = getData("PEDIDO_DETALLE");
+  const pedidos = getData("PEDIDOS");
+  const pedidoById = {};
+
+  pedidos.forEach(p => {
+    pedidoById[String(p.ID)] = p;
+  });
+
+  return detalles.reduce((sum, detalle) => {
+    const pedidoID = String(detalle.PedidoID || "");
+    if (!pedidoID || pedidoID === String(pedidoExcluirID || "")) return sum;
+
+    const pedido = pedidoById[pedidoID];
+    if (!pedido) return sum;
+
+    if (!estadoComprometeInventario(pedido.Estado)) return sum;
+
+    const origenPedido = obtenerOrigenInventarioPedido(pedido);
+    if (origenPedido !== origenInventario) return sum;
+
+    if (String(detalle.ProductoID || "") !== String(productoID || "")) return sum;
+
+    return sum + (Number(detalle.Cantidad) || 0);
+  }, 0);
+}
+
+function obtenerStockTotalBodegas(productoID){
+  const inventario = getData("INVENTARIO");
+  return inventario
+    .filter(item => String(item.ProductoID || "") === String(productoID || ""))
+    .reduce((sum, item) => sum + (Number(item.StockActual) || 0), 0);
+}
+
+function validarDisponibilidadDetallePedido(data){
+  const pedidoID = String(data.PedidoID || "");
+  const productoID = String(data.ProductoID || "");
+  const cantidad = Number(data.Cantidad) || 0;
+
+  if (!pedidoID) throw new Error("PedidoID requerido en el detalle");
+  if (!productoID) throw new Error("ProductoID requerido en el detalle");
+  if (cantidad <= 0) throw new Error("La cantidad del detalle debe ser mayor a cero");
+
+  if (permiteNegativo(data)) {
+    return;
+  }
+
+  const pedidos = getData("PEDIDOS");
+  const pedido = pedidos.find(p => String(p.ID || "") === pedidoID);
+  if (!pedido) throw new Error("Pedido no encontrado para validar inventario");
+
+  const origen = obtenerOrigenInventarioPedido(pedido);
+  const productos = getData("PRODUCTOS");
+  const producto = productos.find(p => String(p.ID || "") === productoID);
+  if (!producto) throw new Error("Producto no encontrado para validar inventario");
+
+  if (origen === "TRANSITO") {
+    const transitoTotal = Number(producto.CantidadEnTransito) || 0;
+    const comprometido = calcularCantidadComprometida(productoID, "TRANSITO", pedidoID);
+    const disponible = transitoTotal - comprometido;
+
+    if (cantidad > disponible) {
+      throw new Error("Stock insuficiente en tránsito para este producto. Disponible: " + disponible);
+    }
+    return;
+  }
+
+  const stockBodegas = obtenerStockTotalBodegas(productoID);
+  const comprometidoBodegas = calcularCantidadComprometida(productoID, "BODEGA", pedidoID);
+  const disponibleBodegas = stockBodegas - comprometidoBodegas;
+
+  if (cantidad > disponibleBodegas) {
+    throw new Error("Stock insuficiente en bodegas para este producto. Disponible: " + disponibleBodegas);
+  }
+}
+
 function agregarDetallePedido(data){
+  validarDisponibilidadDetallePedido(data);
   data.ID = "DET-" + Date.now();
   insertRow("PEDIDO_DETALLE", data);
   return data;
@@ -475,11 +583,13 @@ function agregarDetallePedido(data){
 function getDashboard(){
   const pedidos = getData("PEDIDOS");
   const facturas = getData("FACTURAS");
+
+  const totalPorEstado = (estadoObjetivo) => pedidos.filter(p => normalizarEstadoPipeline(p.Estado) === estadoObjetivo).length;
   
   const totalPedidos = pedidos.length || 1;
-  const entregados = pedidos.filter(p => p.Estado === "ENTREGADO").length;
-  const enSeguimiento = pedidos.filter(p => p.Estado === "SEGUIMIENTO").length;
-  const recaudados = pedidos.filter(p => p.Estado === "RECAUDADO").length;
+  const entregados = totalPorEstado("DESPACHO");
+  const enSeguimiento = 0;
+  const recaudados = totalPorEstado("RECAUDO");
 
   const asesorMap = {};
   pedidos.forEach(p => {
@@ -510,9 +620,9 @@ function getDashboard(){
 
   const gaugePercent = Math.round(((entregados + recaudados) / totalPedidos) * 100);
   const donutReason = [
-    { label: "Precio", value: pedidos.filter(p => p.Estado === "PEDIDO").length },
-    { label: "Solucion", value: pedidos.filter(p => p.Estado === "ALISTAMIENTO").length },
-    { label: "Desempeno", value: pedidos.filter(p => p.Estado === "FACTURADO").length }
+    { label: "Precio", value: totalPorEstado("PEDIDO") },
+    { label: "Solucion", value: totalPorEstado("ALISTAMIENTO") },
+    { label: "Desempeno", value: totalPorEstado("FACTURACION") }
   ];
   const donutSource = [
     { label: "Sitio web", value: entregados },
@@ -523,11 +633,11 @@ function getDashboard(){
   return {
     totalClientes: getData("CLIENTES").length,
     totalProductos: getData("PRODUCTOS").length,
-    pedidosPendientes: pedidos.filter(p => ["PEDIDO","ALISTAMIENTO"].includes(p.Estado)).length,
+    pedidosPendientes: pedidos.filter(p => ["RESERVA","PEDIDO","ALISTAMIENTO"].includes(normalizarEstadoPipeline(p.Estado))).length,
     facturasPendientes: facturas.filter(f => f.Estado === "EMITIDA").length,
-    enPedido: pedidos.filter(p => p.Estado === "PEDIDO").length,
-    enAlistamiento: pedidos.filter(p => p.Estado === "ALISTAMIENTO").length,
-    facturados: pedidos.filter(p => p.Estado === "FACTURADO").length,
+    enPedido: totalPorEstado("PEDIDO"),
+    enAlistamiento: totalPorEstado("ALISTAMIENTO"),
+    facturados: totalPorEstado("FACTURACION"),
     entregados: entregados,
     enSeguimiento: enSeguimiento,
     recaudados: recaudados,
@@ -658,12 +768,17 @@ function getInventario(productoID, bodegaID){
 
   return null;
 }
-function actualizarStock(productoID, bodegaID, cantidad){
+function actualizarStock(productoID, bodegaID, cantidad, permitirNegativo){
 
   const inventario = getInventario(productoID, bodegaID);
   const sheet = getSheet("INVENTARIO");
+  const cantidadNumerica = Number(cantidad) || 0;
 
   if(!inventario){
+
+    if(cantidadNumerica < 0 && !permitirNegativo){
+      throw new Error("❌ Stock insuficiente en bodega");
+    }
 
     const consecutivo = generarConsecutivo("INV_CONSEC");
 
@@ -671,15 +786,15 @@ function actualizarStock(productoID, bodegaID, cantidad){
       "INV-"+consecutivo,
       productoID,
       bodegaID,
-      cantidad,
+      cantidadNumerica,
       0
     ]);
 
   } else {
 
-    const nuevoStock = inventario.stock + Number(cantidad);
+    const nuevoStock = inventario.stock + cantidadNumerica;
 
-    if(nuevoStock < 0){
+    if(nuevoStock < 0 && !permitirNegativo){
       throw new Error("❌ Stock insuficiente en bodega");
     }
 
@@ -689,6 +804,7 @@ function actualizarStock(productoID, bodegaID, cantidad){
 
 
 function registrarMovimiento(data){
+  const adminPuedeNegativo = permiteNegativo(data);
 
   const consecutivo = generarConsecutivo("MOV_CONSEC");
 
@@ -707,16 +823,16 @@ function registrarMovimiento(data){
   insertRow("MOVIMIENTOS_INVENTARIO", movimiento);
 
   if(data.Tipo === "ENTRADA"){
-    actualizarStock(data.ProductoID, data.BodegaDestino, data.Cantidad);
+    actualizarStock(data.ProductoID, data.BodegaDestino, data.Cantidad, adminPuedeNegativo);
   }
 
   if(data.Tipo === "SALIDA"){
-    actualizarStock(data.ProductoID, data.BodegaOrigen, -data.Cantidad);
+    actualizarStock(data.ProductoID, data.BodegaOrigen, -data.Cantidad, adminPuedeNegativo);
   }
 
   if(data.Tipo === "TRASLADO"){
-    actualizarStock(data.ProductoID, data.BodegaOrigen, -data.Cantidad);
-    actualizarStock(data.ProductoID, data.BodegaDestino, data.Cantidad);
+    actualizarStock(data.ProductoID, data.BodegaOrigen, -data.Cantidad, adminPuedeNegativo);
+    actualizarStock(data.ProductoID, data.BodegaDestino, data.Cantidad, adminPuedeNegativo);
   }
 
   return "Movimiento registrado correctamente";
@@ -749,7 +865,7 @@ function generarFactura(pedidoID){
 
   insertRow("FACTURAS", factura);
 
-  actualizarEstadoPedido(pedidoID,"FACTURADO");
+  actualizarEstadoPedido(pedidoID,"FACTURACION");
 
   return factura;
 }
@@ -773,7 +889,7 @@ function registrarPago(facturaID, valor){
         sheet.getRange(i+1,9).setValue("PAGADA");
         // Actualizar estado del pedido a RECAUDADO
         const pedidoID = data[i][2];
-        cambiarEstadoPedido(pedidoID, "RECAUDADO", {FechaRecaudo: new Date()});
+        cambiarEstadoPedido(pedidoID, "RECAUDO", {FechaRecaudo: new Date()});
       } else {
         sheet.getRange(i+1,9).setValue("PARCIAL");
       }
@@ -832,22 +948,48 @@ function crearFormaPago(data){
 }
 
 // ========= PIPELINE DE VENTAS =========
+function normalizarEstadoPipeline(estado) {
+  const estadoNormalizado = String(estado || "").toUpperCase().trim();
+
+  if (["RESERVA", "PEDIDO", "ALISTAMIENTO", "DESPACHO", "FACTURACION", "RECAUDO"].includes(estadoNormalizado)) {
+    return estadoNormalizado;
+  }
+
+  const mapaLegacy = {
+    FACTURADO: "FACTURACION",
+    ENTREGADO: "DESPACHO",
+    SEGUIMIENTO: "RECAUDO",
+    RECAUDADO: "RECAUDO"
+  };
+
+  return mapaLegacy[estadoNormalizado] || "PEDIDO";
+}
+
 function getPipeline(){
   const pedidos = getData("PEDIDOS");
   
   const pipeline = {
-    PEDIDO: pedidos.filter(p => p.Estado === "PEDIDO"),
-    ALISTAMIENTO: pedidos.filter(p => p.Estado === "ALISTAMIENTO"),
-    FACTURADO: pedidos.filter(p => p.Estado === "FACTURADO"),
-    ENTREGADO: pedidos.filter(p => p.Estado === "ENTREGADO"),
-    SEGUIMIENTO: pedidos.filter(p => p.Estado === "SEGUIMIENTO"),
-    RECAUDADO: pedidos.filter(p => p.Estado === "RECAUDADO")
+    RESERVA: [],
+    PEDIDO: [],
+    ALISTAMIENTO: [],
+    DESPACHO: [],
+    FACTURACION: [],
+    RECAUDO: []
   };
+
+  pedidos.forEach(pedido => {
+    const estado = normalizarEstadoPipeline(pedido.Estado);
+    pipeline[estado].push({
+      ...pedido,
+      Estado: estado
+    });
+  });
   
   return pipeline;
 }
 
 function cambiarEstadoPedido(pedidoID, nuevoEstado, datos){
+  const estadoObjetivo = normalizarEstadoPipeline(nuevoEstado);
   const sheet = getSheet("PEDIDOS");
   const dataSheet = sheet.getDataRange().getValues();
   const headers = dataSheet[0];
@@ -867,29 +1009,29 @@ function cambiarEstadoPedido(pedidoID, nuevoEstado, datos){
       const row = i + 1;
       
       // Actualizar estado
-      sheet.getRange(row, estadoCol).setValue(nuevoEstado);
+      sheet.getRange(row, estadoCol).setValue(estadoObjetivo);
       
       // Actualizar fechas según el estado
-      if(nuevoEstado === "ALISTAMIENTO" && fechaAlistamientoCol > 0){
+      if(estadoObjetivo === "ALISTAMIENTO" && fechaAlistamientoCol > 0){
         sheet.getRange(row, fechaAlistamientoCol).setValue(new Date());
         if(datos && datos.Responsable && responsableCol > 0){
           sheet.getRange(row, responsableCol).setValue(datos.Responsable);
         }
       }
       
-      if(nuevoEstado === "FACTURADO" && fechaFacturacionCol > 0){
+      if(estadoObjetivo === "FACTURACION" && fechaFacturacionCol > 0){
         sheet.getRange(row, fechaFacturacionCol).setValue(new Date());
       }
       
-      if(nuevoEstado === "ENTREGADO" && fechaEntregaCol > 0){
+      if(estadoObjetivo === "DESPACHO" && fechaEntregaCol > 0){
         sheet.getRange(row, fechaEntregaCol).setValue(new Date());
       }
       
-      if(nuevoEstado === "SEGUIMIENTO" && fechaSeguimientoCol > 0){
+      if(estadoObjetivo === "DESPACHO" && fechaSeguimientoCol > 0){
         sheet.getRange(row, fechaSeguimientoCol).setValue(new Date());
       }
       
-      if(nuevoEstado === "RECAUDADO" && fechaRecaudoCol > 0){
+      if(estadoObjetivo === "RECAUDO" && fechaRecaudoCol > 0){
         sheet.getRange(row, fechaRecaudoCol).setValue(datos?.FechaRecaudo || new Date());
       }
       
@@ -900,7 +1042,7 @@ function cambiarEstadoPedido(pedidoID, nuevoEstado, datos){
         sheet.getRange(row, notasCol).setValue(nuevasNotas);
       }
       
-      return {success: true, mensaje: "Estado actualizado a " + nuevoEstado};
+      return {success: true, mensaje: "Estado actualizado a " + estadoObjetivo};
     }
   }
   

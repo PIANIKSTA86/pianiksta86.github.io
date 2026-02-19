@@ -372,11 +372,23 @@
       <!-- Kanban Board -->
       <div class="kanban-board">
         
+        <!-- Columna: RESERVA -->
+        <div class="kanban-column">
+          <div class="kanban-header reserva">
+            <span class="kanban-icon">📑</span>
+            <h3>Reserva</h3>
+            <span class="kanban-count" id="countReserva">0</span>
+          </div>
+          <div class="kanban-cards" id="kanbanReserva" data-estado="RESERVA">
+            <!-- Cards dinámicos -->
+          </div>
+        </div>
+
         <!-- Columna: PEDIDO -->
         <div class="kanban-column">
           <div class="kanban-header pedido">
             <span class="kanban-icon">📝</span>
-            <h3>Pedido Tomado</h3>
+            <h3>Pedido</h3>
             <span class="kanban-count" id="countPedido">0</span>
           </div>
           <div class="kanban-cards" id="kanbanPedido" data-estado="PEDIDO">
@@ -396,50 +408,38 @@
           </div>
         </div>
 
-        <!-- Columna: FACTURADO -->
+        <!-- Columna: DESPACHO -->
         <div class="kanban-column">
-          <div class="kanban-header facturado">
-            <span class="kanban-icon">🧾</span>
-            <h3>Facturado</h3>
-            <span class="kanban-count" id="countFacturado">0</span>
-          </div>
-          <div class="kanban-cards" id="kanbanFacturado" data-estado="FACTURADO">
-            <!-- Cards dinámicos -->
-          </div>
-        </div>
-
-        <!-- Columna: ENTREGADO -->
-        <div class="kanban-column">
-          <div class="kanban-header entregado">
+          <div class="kanban-header despacho">
             <span class="kanban-icon">🚚</span>
-            <h3>Entregado</h3>
-            <span class="kanban-count" id="countEntregado">0</span>
+            <h3>Despacho</h3>
+            <span class="kanban-count" id="countDespacho">0</span>
           </div>
-          <div class="kanban-cards" id="kanbanEntregado" data-estado="ENTREGADO">
+          <div class="kanban-cards" id="kanbanDespacho" data-estado="DESPACHO">
             <!-- Cards dinámicos -->
           </div>
         </div>
 
-        <!-- Columna: SEGUIMIENTO -->
+        <!-- Columna: FACTURACION -->
         <div class="kanban-column">
-          <div class="kanban-header seguimiento">
-            <span class="kanban-icon">👁️</span>
-            <h3>Seguimiento</h3>
-            <span class="kanban-count" id="countSeguimiento">0</span>
+          <div class="kanban-header facturacion">
+            <span class="kanban-icon">🧾</span>
+            <h3>Facturación</h3>
+            <span class="kanban-count" id="countFacturacion">0</span>
           </div>
-          <div class="kanban-cards" id="kanbanSeguimiento" data-estado="SEGUIMIENTO">
+          <div class="kanban-cards" id="kanbanFacturacion" data-estado="FACTURACION">
             <!-- Cards dinámicos -->
           </div>
         </div>
 
-        <!-- Columna: RECAUDADO -->
+        <!-- Columna: RECAUDO -->
         <div class="kanban-column">
-          <div class="kanban-header recaudado">
+          <div class="kanban-header recaudo">
             <span class="kanban-icon">💵</span>
-            <h3>Recaudado</h3>
-            <span class="kanban-count" id="countRecaudado">0</span>
+            <h3>Recaudo</h3>
+            <span class="kanban-count" id="countRecaudo">0</span>
           </div>
-          <div class="kanban-cards" id="kanbanRecaudado" data-estado="RECAUDADO">
+          <div class="kanban-cards" id="kanbanRecaudo" data-estado="RECAUDO">
             <!-- Cards dinámicos -->
           </div>
         </div>
@@ -865,6 +865,8 @@
                 <th>ID</th>
                 <th>Fecha</th>
                 <th>Cliente</th>
+                <th>Origen Inv.</th>
+                <th>Sobreventa</th>
                 <th>Asesor</th>
                 <th>Estado</th>
                 <th>Total</th>
@@ -929,6 +931,13 @@
             <h4>📝 Información del Pedido</h4>
             <div class="form-row">
               <div class="form-group">
+                <label>Origen del Inventario:</label>
+                <select id="pedidoOrigenInventario" required>
+                  <option value="TRANSITO">Reserva (Inventario en tránsito)</option>
+                  <option value="BODEGA">Pedido directo (Inventario en bodegas)</option>
+                </select>
+              </div>
+              <div class="form-group">
                 <label>Asesor Comercial:</label>
                 <select id="pedidoAsesor" required>
                   <option value="">Seleccione un asesor</option>
@@ -956,6 +965,12 @@
             <div class="form-group">
               <label>Notas del Pedido:</label>
               <textarea id="pedidoNotas" rows="2" placeholder="Observaciones especiales del cliente..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="pedidoPermitirNegativo">
+                <span>Permitir sobreventa/inventario negativo (solo Administrador)</span>
+              </label>
             </div>
           </div>
 
@@ -1448,45 +1463,106 @@
     <div id="view-inventario" class="view-container">
       <div class="card">
         <h2>Control de Inventario</h2>
-        <button onclick="mostrarFormulario('formMovimiento')" class="btn btn-primary">➕ Registrar Movimiento</button>
+        <div class="inventario-toolbar">
+          <div class="inventario-toolbar-actions">
+            <button onclick="iniciarMovimientoInventario()" class="btn btn-primary">➕ Registrar Movimiento</button>
+            <button onclick="exportarInventarioCompleto()" class="btn btn-secondary">📤 Exportar Inventario Completo</button>
+          </div>
+          <div class="inventario-toolbar-filtros">
+            <input type="text" id="inventarioSearch" placeholder="Buscar por referencia o descripción" oninput="aplicarFiltrosInventario()">
+            <select id="inventarioFiltroBodega" onchange="aplicarFiltrosInventario()">
+              <option value="">Todas las bodegas</option>
+            </select>
+            <label class="checkbox-label" style="margin-bottom: 0;">
+              <input type="checkbox" id="inventarioSoloStockBajo" onchange="aplicarFiltrosInventario()">
+              <span>Solo stock bajo</span>
+            </label>
+            <button type="button" class="btn btn-secondary" onclick="limpiarFiltrosInventario()">Limpiar</button>
+          </div>
+        </div>
         
-        <div id="formMovimiento" class="form-container" style="display:none;">
-          <h3>Registrar Movimiento de Inventario</h3>
-          <form onsubmit="registrarMovimiento(event)">
-            <div class="form-group">
-              <label>Tipo:</label>
-              <select id="tipoMovimiento" required>
-                <option value="ENTRADA">Entrada</option>
-                <option value="SALIDA">Salida</option>
-                <option value="TRASLADO">Traslado</option>
-              </select>
+        <div id="formMovimiento" class="modal-overlay" style="display:none;">
+          <div class="modal-container modal-xl">
+            <div class="modal-header">
+              <h3>📦 Registrar Movimiento de Inventario</h3>
+              <button class="modal-close" onclick="ocultarFormulario('formMovimiento')">&times;</button>
             </div>
-            <div class="form-group">
-              <label>Producto ID:</label>
-              <input type="text" id="movProductoID" required>
+            <div class="modal-body">
+              <form onsubmit="registrarMovimiento(event)">
+                <div class="pedido-seccion">
+                  <h4>🔁 Datos de la Transacción</h4>
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label>Tipo de Transacción:</label>
+                      <select id="tipoMovimiento" onchange="actualizarCamposMovimiento()" required>
+                        <option value="ENTRADA">Entrada</option>
+                        <option value="SALIDA">Salida</option>
+                        <option value="TRASLADO">Traslado</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Cantidad:</label>
+                      <input type="number" id="movCantidad" min="1" step="1" required>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pedido-seccion">
+                  <h4>📦 Producto</h4>
+                  <div class="form-row">
+                    <div class="form-group" style="grid-column: span 2;">
+                      <label>Buscar Producto por Nombre o Referencia:</label>
+                      <div class="search-input-group">
+                        <input type="text"
+                               id="movBuscarProducto"
+                               placeholder="Escribe referencia o descripción..."
+                               autocomplete="off"
+                               oninput="buscarProductoMovimientoEnTiempoReal(this.value)">
+                        <div id="resultadosProductoMovimiento" class="search-results"></div>
+                      </div>
+                    </div>
+                    <div class="form-group">
+                      <label>Producto Seleccionado:</label>
+                      <input type="text" id="movProductoSeleccionadoNombre" readonly class="readonly-input" placeholder="Seleccione un producto">
+                      <input type="hidden" id="movProductoID">
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pedido-seccion">
+                  <h4>🏭 Bodegas</h4>
+                  <div class="form-row">
+                    <div class="form-group" id="campoMovBodegaOrigen">
+                      <label>Bodega Origen:</label>
+                      <select id="movBodegaOrigen">
+                        <option value="">Seleccione bodega origen</option>
+                      </select>
+                    </div>
+                    <div class="form-group" id="campoMovBodegaDestino">
+                      <label>Bodega Destino:</label>
+                      <select id="movBodegaDestino">
+                        <option value="">Seleccione bodega destino</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-success">💾 Registrar</button>
+                  <button type="button" onclick="ocultarFormulario('formMovimiento')" class="btn btn-secondary">❌ Cancelar</button>
+                </div>
+              </form>
             </div>
-            <div class="form-group">
-              <label>Bodega Origen:</label>
-              <input type="text" id="movBodegaOrigen">
-            </div>
-            <div class="form-group">
-              <label>Bodega Destino:</label>
-              <input type="text" id="movBodegaDestino">
-            </div>
-            <div class="form-group">
-              <label>Cantidad:</label>
-              <input type="number" id="movCantidad" required>
-            </div>
-            <button type="submit" class="btn btn-success">💾 Registrar</button>
-            <button type="button" onclick="ocultarFormulario('formMovimiento')" class="btn btn-secondary">❌ Cancelar</button>
-          </form>
+          </div>
         </div>
         
         <div id="listaInventario" class="table-container">
           <table id="tablaInventario">
             <thead>
               <tr>
-                <th>Producto</th>
+                <th>Producto ID</th>
+                <th>Referencia</th>
+                <th>Descripción</th>
                 <th>Bodega</th>
                 <th>Stock Actual</th>
                 <th>Stock Mínimo</th>

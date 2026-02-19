@@ -1173,6 +1173,10 @@ body.sidebar-collapsed .main-content {
   background: var(--pedido);
 }
 
+.kanban-header.reserva {
+  background: var(--primary);
+}
+
 .kanban-header.alistamiento {
   background: var(--alistamiento);
 }
@@ -1190,6 +1194,18 @@ body.sidebar-collapsed .main-content {
 }
 
 .kanban-header.recaudado {
+  background: var(--recaudado);
+}
+
+.kanban-header.despacho {
+  background: var(--entregado);
+}
+
+.kanban-header.facturacion {
+  background: var(--facturado);
+}
+
+.kanban-header.recaudo {
   background: var(--recaudado);
 }
 
@@ -1528,6 +1544,34 @@ tbody tr:last-child td {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.inventario-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+}
+
+.inventario-toolbar-actions,
+.inventario-toolbar-filtros {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.inventario-toolbar-filtros input,
+.inventario-toolbar-filtros select {
+  min-height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
 }
 
 .clientes-toolbar-filtros input,

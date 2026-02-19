@@ -76,6 +76,47 @@ function mostrarAplicacion(sesion) {
   inicializarApp();
 }
 
+function obtenerSesionActiva() {
+  const sesionLocal = localStorage.getItem('crmSesion');
+  const sesionSession = sessionStorage.getItem('crmSesion');
+  const raw = sesionLocal || sesionSession;
+
+  if (!raw) return null;
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+function esUsuarioAdministrador() {
+  const sesion = obtenerSesionActiva();
+  return String(sesion?.rol || '').toLowerCase() === 'administrador';
+}
+
+function obtenerOrigenInventarioPedidoDesdeRegistro(pedido) {
+  const origenDirecto = String(pedido?.OrigenInventario || '').trim().toUpperCase();
+  if (origenDirecto === 'TRANSITO' || origenDirecto === 'BODEGA') {
+    return origenDirecto;
+  }
+
+  const notas = String(pedido?.Notas || '');
+  const match = notas.match(/\[Origen inventario:\s*(TRANSITO|BODEGA)\]/i);
+  return match?.[1] ? String(match[1]).toUpperCase() : 'TRANSITO';
+}
+
+function obtenerSobreventaAutorizadaDesdeRegistro(pedido) {
+  const valorDirecto = String(pedido?.SobreventaAutorizada || '').trim().toUpperCase();
+  if (valorDirecto === 'SI' || valorDirecto === 'NO') {
+    return valorDirecto;
+  }
+
+  const notas = String(pedido?.Notas || '');
+  const match = notas.match(/\[Sobreventa:\s*(SI|NO)\]/i);
+  return match?.[1] ? String(match[1]).toUpperCase() : 'NO';
+}
+
 function toggleUserMenu(event) {
   if (event) {
     event.stopPropagation();
@@ -288,7 +329,6 @@ function handleSwipe() {
   const sidebar = document.getElementById('sidebar');
   
   if (sidebar.classList.contains('active')) {
-    // Swipe left to close
     if (touchStartX - touchEndX > 50) {
       closeMobileSidebar();
     }
@@ -300,17 +340,12 @@ function handleSwipe() {
 // ========================================
 
 // URL del Backend de Google Apps Script
-// Reemplaza esta URL con la URL de tu despliegue de Google Apps Script
 const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwp04FHjRlJw5siSQaz_7nLx7jYd6biFiKzHsHx-g6VHvycbJpBYU0g50d-gWYVK0XD/exec';
 
-// IMPORTANTE: Si cambias la BACKEND_URL arriba, limpia el localStorage para que tome efecto
-// Puedes hacerlo desde la consola del navegador con: localStorage.removeItem('crmApiUrl')
-
-// La URL puede ser sobrescrita desde el frontend si es necesario
-// Prioriza BACKEND_URL si existe, luego localStorage
+// La URL puede ser sobrescrita desde el frontend
 let API_URL = BACKEND_URL || localStorage.getItem('crmApiUrl') || '';
 
-// Si BACKEND_URL está configurado correctamente, actualizar localStorage
+// Si BACKEND_URL está configurado, actualizar localStorage
 if (BACKEND_URL && !BACKEND_URL.includes('TU_DEPLOYMENT_ID')) {
   localStorage.setItem('crmApiUrl', BACKEND_URL);
   API_URL = BACKEND_URL;
@@ -318,7 +353,6 @@ if (BACKEND_URL && !BACKEND_URL.includes('TU_DEPLOYMENT_ID')) {
 
 let pipelineData = null;
 
-// Configuración general
 const CONFIG_DEFAULT = {
   empresa: 'MI EMPRESA SAS',
   moneda: 'COP',
@@ -681,6 +715,23 @@ async function cargarDashboard(data) {
 // Variable global para almacenar clientes en el pipeline
 let clientesPipeline = [];
 
+function normalizarEstadoPipeline(estado) {
+  const estadoNormalizado = String(estado || '').toUpperCase().trim();
+
+  const mapaLegacy = {
+    FACTURADO: 'FACTURACION',
+    ENTREGADO: 'DESPACHO',
+    SEGUIMIENTO: 'RECAUDO',
+    RECAUDADO: 'RECAUDO'
+  };
+
+  if (['RESERVA', 'PEDIDO', 'ALISTAMIENTO', 'DESPACHO', 'FACTURACION', 'RECAUDO'].includes(estadoNormalizado)) {
+    return estadoNormalizado;
+  }
+
+  return mapaLegacy[estadoNormalizado] || 'PEDIDO';
+}
+
 async function cargarPipeline() {
   mostrarLoading(true);
   
@@ -696,7 +747,7 @@ async function cargarPipeline() {
 }
 
 function renderizarKanban(pipeline) {
-  const estados = ['PEDIDO', 'ALISTAMIENTO', 'FACTURADO', 'ENTREGADO', 'SEGUIMIENTO', 'RECAUDADO'];
+  const estados = ['RESERVA', 'PEDIDO', 'ALISTAMIENTO', 'DESPACHO', 'FACTURACION', 'RECAUDO'];
   
   estados.forEach(estado => {
     const container = document.getElementById(`kanban${estado.charAt(0) + estado.slice(1).toLowerCase()}`);
@@ -704,7 +755,10 @@ function renderizarKanban(pipeline) {
     
     if (!container) return;
     
-    const pedidos = pipeline[estado] || [];
+    const pedidos = (pipeline[estado] || []).map(pedido => ({
+      ...pedido,
+      Estado: normalizarEstadoPipeline(pedido.Estado)
+    }));
     container.innerHTML = '';
     
     if (count) {
@@ -775,46 +829,48 @@ function crearKanbanCard(pedido, estadoActual) {
 
 function obtenerSiguienteEstado(estadoActual) {
   const flujo = {
+    'RESERVA': 'PEDIDO',
     'PEDIDO': 'ALISTAMIENTO',
-    'ALISTAMIENTO': 'FACTURADO',
-    'FACTURADO': 'ENTREGADO',
-    'ENTREGADO': 'SEGUIMIENTO',
-    'SEGUIMIENTO': 'RECAUDADO',
-    'RECAUDADO': null
+    'ALISTAMIENTO': 'DESPACHO',
+    'DESPACHO': 'FACTURACION',
+    'FACTURACION': 'RECAUDO',
+    'RECAUDO': null
   };
   
-  return flujo[estadoActual];
+  return flujo[normalizarEstadoPipeline(estadoActual)] || null;
 }
 
 function getNombreEstado(estado) {
   const nombres = {
+    'RESERVA': 'Reserva',
     'PEDIDO': 'Pedido',
     'ALISTAMIENTO': 'Alistamiento',
-    'FACTURADO': 'Facturado',
-    'ENTREGADO': 'Entregado',
-    'SEGUIMIENTO': 'Seguimiento',
-    'RECAUDADO': 'Recaudado'
+    'DESPACHO': 'Despacho',
+    'FACTURACION': 'Facturación',
+    'RECAUDO': 'Recaudo'
   };
   
-  return nombres[estado] || estado;
+  const estadoNormalizado = normalizarEstadoPipeline(estado);
+  return nombres[estadoNormalizado] || estadoNormalizado;
 }
 
 async function avanzarEstado(pedidoID, nuevoEstado) {
   mostrarLoading(true);
   
   try {
+    const estadoObjetivo = normalizarEstadoPipeline(nuevoEstado);
     let datos = {};
     
     // Solicitar información adicional según el estado
-    if (nuevoEstado === 'ALISTAMIENTO') {
+    if (estadoObjetivo === 'ALISTAMIENTO') {
       const responsable = prompt('Responsable del alistamiento:');
       if (responsable) {
         datos.Responsable = responsable;
       }
     }
     
-    if (nuevoEstado === 'SEGUIMIENTO') {
-      const notas = prompt('Notas de seguimiento:');
+    if (estadoObjetivo === 'RECAUDO') {
+      const notas = prompt('Notas de recaudo:');
       if (notas) {
         datos.Notas = notas;
       }
@@ -822,7 +878,7 @@ async function avanzarEstado(pedidoID, nuevoEstado) {
     
     const result = await llamarAPI('cambiarEstadoPedido', {
       pedidoID: pedidoID,
-      nuevoEstado: nuevoEstado,
+      nuevoEstado: estadoObjetivo,
       datos: datos
     });
     
@@ -848,7 +904,7 @@ async function crearPedidoPipeline(event) {
     Asesor: document.getElementById('pedidoPipelineAsesor').value,
     Prioridad: document.getElementById('pedidoPipelinePrioridad').value,
     Subtotal: parseFloat(document.getElementById('pedidoPipelineSubtotal').value) || 0,
-    Estado: 'PEDIDO',
+    Estado: 'RESERVA',
     Notas: document.getElementById('pedidoPipelineNotas').value
   };
   
@@ -1766,9 +1822,9 @@ function aplicarFiltrosProductos(resetPagina = true) {
   const categoriaValue = document.getElementById('productoFiltroCategoria')?.value || '';
 
   productosTablaFiltradosCache = productosTablaCache.filter(producto => {
-    const referencia = (producto.Referencia || '').toLowerCase();
-    const descripcion = (producto.Descripcion || '').toLowerCase();
-    const categoria = (producto.Categoria || '').toString();
+    const referencia = String(producto.Referencia || '').trim().toLowerCase();
+    const descripcion = String(producto.Descripcion || '').trim().toLowerCase();
+    const categoria = String(producto.Categoria || '').trim();
 
     const cumpleBusqueda = !searchValue
       || referencia.includes(searchValue)
@@ -1984,22 +2040,22 @@ async function listarDespachos() {
       });
     }
     
-    // Poblar select de pedidos (solo facturados o entregados)
+    // Poblar select de pedidos (alistamiento o despacho)
     const selectPedido = document.getElementById('despacho_pedidoID');
     if (selectPedido) {
       selectPedido.innerHTML = '<option value="">Seleccione un pedido</option>';
-      pedidos.filter(p => ['FACTURADO', 'ENTREGADO'].includes(p.Estado)).forEach(pedido => {
+      pedidos.filter(p => ['ALISTAMIENTO', 'DESPACHO'].includes(normalizarEstadoPipeline(p.Estado))).forEach(pedido => {
         selectPedido.innerHTML += `<option value="${pedido.ID}">${pedido.ID} - ${pedido.ClienteID}</option>`;
       });
     }
     
-    // Para listar despachos, mostramos los pedidos en estado ENTREGADO
+    // Para listar despachos, mostramos los pedidos desde despacho en adelante
     const tbody = document.querySelector('#tablaDespachos tbody');
     if (!tbody) return;
     
     tbody.innerHTML = '';
     
-    const pedidosEntregados = pedidos.filter(p => ['ENTREGADO', 'SEGUIMIENTO', 'RECAUDADO'].includes(p.Estado));
+    const pedidosEntregados = pedidos.filter(p => ['DESPACHO', 'FACTURACION', 'RECAUDO'].includes(normalizarEstadoPipeline(p.Estado)));
     
     pedidosEntregados.forEach(pedido => {
       const tr = document.createElement('tr');
@@ -2057,6 +2113,12 @@ async function iniciarNuevoPedido() {
   document.getElementById('productoPrecio').value = '';
   document.getElementById('productoDescuento').value = '0';
   document.getElementById('productoSeleccionadoID').value = '';
+  document.getElementById('pedidoOrigenInventario').value = 'TRANSITO';
+  const checkPermitirNegativo = document.getElementById('pedidoPermitirNegativo');
+  if (checkPermitirNegativo) {
+    checkPermitirNegativo.checked = false;
+    checkPermitirNegativo.disabled = !esUsuarioAdministrador();
+  }
   document.getElementById('pedidoNotas').value = '';
   
   // Cargar datos necesarios
@@ -2174,7 +2236,9 @@ function buscarProductoEnTiempoReal(query) {
     return;
   }
   
-  if (!query || query.length < 2) {
+  const queryLower = String(query || '').trim().toLowerCase();
+
+  if (!queryLower || queryLower.length < 2) {
     resultadosDiv.classList.remove('active');
     return;
   }
@@ -2185,10 +2249,9 @@ function buscarProductoEnTiempoReal(query) {
     return;
   }
   
-  const queryLower = query.toLowerCase();
   const resultados = productosCache.filter(producto => {
-    const referencia = (producto.Referencia || '').toLowerCase();
-    const descripcion = (producto.Descripcion || '').toLowerCase();
+    const referencia = String(producto.Referencia || '').trim().toLowerCase();
+    const descripcion = String(producto.Descripcion || '').trim().toLowerCase();
     return referencia.includes(queryLower) || descripcion.includes(queryLower);
   });
   
@@ -2382,11 +2445,17 @@ function calcularTotalesPedido() {
 }
 
 async function guardarPedido() {
+  const sesion = obtenerSesionActiva();
   const clienteID = document.getElementById('pedidoClienteID').value;
+  const origenInventario = document.getElementById('pedidoOrigenInventario').value;
   const asesor = document.getElementById('pedidoAsesor').value;
   const tipoPago = document.getElementById('pedidoTipoPago').value;
   const prioridad = document.getElementById('pedidoPrioridad').value;
+  const permitirNegativoSolicitado = document.getElementById('pedidoPermitirNegativo')?.checked === true;
+  const permitirNegativo = permitirNegativoSolicitado && esUsuarioAdministrador();
+  const usuarioRol = sesion?.rol || '';
   const notas = document.getElementById('pedidoNotas').value;
+  const estadoInicial = origenInventario === 'BODEGA' ? 'PEDIDO' : 'RESERVA';
   
   // Validaciones
   if (!clienteID) {
@@ -2396,6 +2465,16 @@ async function guardarPedido() {
   
   if (!asesor) {
     mostrarToast('Debe seleccionar un asesor', 'warning');
+    return;
+  }
+
+  if (!origenInventario) {
+    mostrarToast('Debe seleccionar el origen del inventario', 'warning');
+    return;
+  }
+
+  if (permitirNegativoSolicitado && !esUsuarioAdministrador()) {
+    mostrarToast('Solo un Administrador puede permitir inventario negativo', 'warning');
     return;
   }
   
@@ -2415,7 +2494,11 @@ async function guardarPedido() {
       Asesor: asesor,
       TipoPago: tipoPago,
       Prioridad: prioridad,
-      Notas: notas,
+      Estado: estadoInicial,
+      OrigenInventario: origenInventario,
+      UsuarioRol: usuarioRol,
+      PermitirNegativo: permitirNegativo,
+      Notas: `[Origen inventario: ${origenInventario}] [Sobreventa: ${permitirNegativo ? 'SI' : 'NO'}]${notas ? ` ${notas}` : ''}`,
       Subtotal: total,
       IVA: 0,
       Total: total
@@ -2431,7 +2514,9 @@ async function guardarPedido() {
         Cantidad: item.Cantidad,
         Precio: item.Precio,
         Descuento: item.Descuento,
-        Total: item.Total
+        Total: item.Total,
+        UsuarioRol: usuarioRol,
+        PermitirNegativo: permitirNegativo
       });
     }
     
@@ -2474,6 +2559,12 @@ async function listarPedidos() {
     pedidos.forEach(pedido => {
       const tr = document.createElement('tr');
       const fecha = pedido.Fecha ? new Date(pedido.Fecha).toLocaleDateString() : '-';
+      const origenInv = obtenerOrigenInventarioPedidoDesdeRegistro(pedido);
+      const sobreventa = obtenerSobreventaAutorizadaDesdeRegistro(pedido);
+      const origenInvLabel = origenInv === 'BODEGA' ? 'Bodega' : 'Tránsito';
+      const sobreventaLabel = sobreventa === 'SI' ? 'Sí' : 'No';
+      const sobreventaBadgeClass = sobreventa === 'SI' ? 'badge-warning' : 'badge-success';
+      const origenBadgeClass = origenInv === 'BODEGA' ? 'badge-info' : 'badge-warning';
       
       // Buscar nombre del cliente
       const cliente = clientes.find(c => c.ID == pedido.ClienteID || c.ID === pedido.ClienteID);
@@ -2482,16 +2573,19 @@ async function listarPedidos() {
         : `Cliente #${pedido.ClienteID}`;
       
       let badgeClass = 'badge-info';
-      if (pedido.Estado === 'RECAUDADO') badgeClass = 'badge-success';
-      if (pedido.Estado === 'ENTREGADO') badgeClass = 'badge-success';
-      if (pedido.Estado === 'PEDIDO') badgeClass = 'badge-warning';
+      const estadoPedido = normalizarEstadoPipeline(pedido.Estado);
+      if (estadoPedido === 'RECAUDO') badgeClass = 'badge-success';
+      if (estadoPedido === 'DESPACHO') badgeClass = 'badge-success';
+      if (estadoPedido === 'RESERVA' || estadoPedido === 'PEDIDO') badgeClass = 'badge-warning';
       
       tr.innerHTML = `
         <td>${pedido.ID}</td>
         <td>${fecha}</td>
         <td>${nombreCliente}</td>
+        <td><span class="badge ${origenBadgeClass}">${origenInvLabel}</span></td>
+        <td><span class="badge ${sobreventaBadgeClass}">${sobreventaLabel}</span></td>
         <td>${pedido.Asesor || '-'}</td>
-        <td><span class="badge ${badgeClass}">${pedido.Estado}</span></td>
+        <td><span class="badge ${badgeClass}">${getNombreEstado(estadoPedido)}</span></td>
         <td>$${formatearNumero(pedido.Total || 0)}</td>
         <td>
           <button class="btn btn-sm btn-primary" onclick="verDetallePedido('${pedido.ID}')">Ver</button>
@@ -2642,7 +2736,9 @@ function buscarProductoFacturaEnTiempoReal(query) {
     return;
   }
   
-  if (!query || query.length < 2) {
+  const queryLower = String(query || '').trim().toLowerCase();
+
+  if (!queryLower || queryLower.length < 2) {
     resultadosDiv.classList.remove('active');
     return;
   }
@@ -2653,10 +2749,9 @@ function buscarProductoFacturaEnTiempoReal(query) {
     return;
   }
   
-  const queryLower = query.toLowerCase();
   const resultados = productosCacheFactura.filter(producto => {
-    const referencia = (producto.Referencia || '').toLowerCase();
-    const descripcion = (producto.Descripcion || '').toLowerCase();
+    const referencia = String(producto.Referencia || '').trim().toLowerCase();
+    const descripcion = String(producto.Descripcion || '').trim().toLowerCase();
     return referencia.includes(queryLower) || descripcion.includes(queryLower);
   });
   
@@ -3063,6 +3158,11 @@ document.addEventListener('click', function(e) {
   if (e.target === modalFactura) {
     cancelarFactura();
   }
+
+  const modalMovimiento = document.getElementById('formMovimiento');
+  if (e.target === modalMovimiento) {
+    ocultarFormulario('formMovimiento');
+  }
 });
 
 // Cerrar modal con tecla ESC
@@ -3076,6 +3176,11 @@ document.addEventListener('keydown', function(e) {
     const modalFactura = document.getElementById('modalFactura');
     if (modalFactura && modalFactura.style.display === 'flex') {
       cancelarFactura();
+    }
+
+    const modalMovimiento = document.getElementById('formMovimiento');
+    if (modalMovimiento && modalMovimiento.style.display === 'flex') {
+      ocultarFormulario('formMovimiento');
     }
   }
 });
@@ -3306,29 +3411,46 @@ async function crearFormaPago(event) {
 // ========================================
 // INVENTARIO
 // ========================================
+let inventarioCache = [];
+let productosMovimientoCache = [];
+let bodegasMovimientoCache = [];
+
 async function listarInventario() {
   mostrarLoading(true);
   
   try {
-    const inventario = await llamarAPI('listarInventario');
-    const tbody = document.querySelector('#tablaInventario tbody');
-    
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    inventario.forEach(item => {
-      const tr = document.createElement('tr');
-      
-      tr.innerHTML = `
-        <td>${item.ProductoID}</td>
-        <td>${item.BodegaID}</td>
-        <td>${item.StockActual}</td>
-        <td>${item.StockMinimo || 0}</td>
-      `;
-      
-      tbody.appendChild(tr);
+    const [inventario, productos, bodegas] = await Promise.all([
+      llamarAPI('listarInventario'),
+      llamarAPI('listarProductos'),
+      llamarAPI('listarBodegas')
+    ]);
+
+    const productosPorId = {};
+    (productos || []).forEach(producto => {
+      productosPorId[String(producto.ID || '')] = producto;
     });
+
+    const bodegasPorId = {};
+    (bodegas || []).forEach(bodega => {
+      bodegasPorId[String(bodega.ID || '')] = bodega;
+    });
+
+    inventarioCache = (inventario || []).map(item => {
+      const producto = productosPorId[String(item.ProductoID || '')] || {};
+      const bodega = bodegasPorId[String(item.BodegaID || '')] || {};
+
+      return {
+        ...item,
+        Referencia: producto.Referencia || '-',
+        Descripcion: producto.Descripcion || '-',
+        BodegaNombre: bodega.Nombre || '-',
+        StockActual: Number(item.StockActual) || 0,
+        StockMinimo: Number(item.StockMinimo) || 0
+      };
+    });
+
+    actualizarOpcionesFiltroBodegaInventario(inventarioCache);
+    aplicarFiltrosInventario();
   } catch (error) {
     mostrarToast('Error al cargar inventario: ' + error.message, 'error');
   } finally {
@@ -3336,18 +3458,343 @@ async function listarInventario() {
   }
 }
 
+function actualizarOpcionesFiltroBodegaInventario(inventario) {
+  const select = document.getElementById('inventarioFiltroBodega');
+  if (!select) return;
+
+  const valorActual = select.value;
+  const bodegas = Array.from(new Set(
+    (inventario || [])
+      .map(item => String(item.BodegaID || '').trim())
+      .filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b, 'es'));
+
+  select.innerHTML = '<option value="">Todas las bodegas</option>';
+  bodegas.forEach(bodegaId => {
+    const option = document.createElement('option');
+    option.value = bodegaId;
+    option.textContent = bodegaId;
+    select.appendChild(option);
+  });
+
+  if (valorActual && bodegas.includes(valorActual)) {
+    select.value = valorActual;
+  }
+}
+
+function renderizarTablaInventario(items) {
+  const tbody = document.querySelector('#tablaInventario tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (!items || items.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center" style="color: #999;">No se encontraron registros de inventario</td>
+      </tr>
+    `;
+    return;
+  }
+
+  items.forEach(item => {
+    const tr = document.createElement('tr');
+    const etiquetaBodega = item.BodegaNombre && item.BodegaNombre !== '-'
+      ? `${item.BodegaID} - ${item.BodegaNombre}`
+      : item.BodegaID;
+
+    tr.innerHTML = `
+      <td>${item.ProductoID}</td>
+      <td>${item.Referencia || '-'}</td>
+      <td>${item.Descripcion || '-'}</td>
+      <td>${etiquetaBodega || '-'}</td>
+      <td>${item.StockActual}</td>
+      <td>${item.StockMinimo}</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+function aplicarFiltrosInventario() {
+  const searchValue = String(document.getElementById('inventarioSearch')?.value || '').trim().toLowerCase();
+  const bodegaValue = String(document.getElementById('inventarioFiltroBodega')?.value || '').trim();
+  const soloStockBajo = document.getElementById('inventarioSoloStockBajo')?.checked === true;
+
+  const filtrado = inventarioCache.filter(item => {
+    const referencia = String(item.Referencia || '').trim().toLowerCase();
+    const descripcion = String(item.Descripcion || '').trim().toLowerCase();
+    const bodegaId = String(item.BodegaID || '').trim();
+    const stockActual = Number(item.StockActual) || 0;
+    const stockMinimo = Number(item.StockMinimo) || 0;
+
+    const cumpleBusqueda = !searchValue || referencia.includes(searchValue) || descripcion.includes(searchValue);
+    const cumpleBodega = !bodegaValue || bodegaId === bodegaValue;
+    const cumpleStock = !soloStockBajo || stockActual <= stockMinimo;
+
+    return cumpleBusqueda && cumpleBodega && cumpleStock;
+  });
+
+  renderizarTablaInventario(filtrado);
+}
+
+function limpiarFiltrosInventario() {
+  const search = document.getElementById('inventarioSearch');
+  const bodega = document.getElementById('inventarioFiltroBodega');
+  const stockBajo = document.getElementById('inventarioSoloStockBajo');
+
+  if (search) search.value = '';
+  if (bodega) bodega.value = '';
+  if (stockBajo) stockBajo.checked = false;
+
+  aplicarFiltrosInventario();
+}
+
+async function exportarInventarioCompleto() {
+  mostrarLoading(true);
+
+  try {
+    const inventario = await llamarAPI('listarInventario');
+
+    if (!inventario || inventario.length === 0) {
+      mostrarToast('No hay datos de inventario para exportar', 'warning');
+      return;
+    }
+
+    const encabezados = [];
+    inventario.forEach(item => {
+      Object.keys(item || {}).forEach(key => {
+        if (!encabezados.includes(key)) {
+          encabezados.push(key);
+        }
+      });
+    });
+
+    const escapeCsv = (value) => {
+      const text = String(value ?? '');
+      return `"${text.replace(/"/g, '""')}"`;
+    };
+
+    const filas = [encabezados.map(escapeCsv).join(',')];
+
+    inventario.forEach(item => {
+      const row = encabezados.map(header => escapeCsv(item?.[header]));
+      filas.push(row.join(','));
+    });
+
+    const csv = `\uFEFF${filas.join('\n')}`;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const now = new Date();
+    const stamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+
+    link.href = url;
+    link.download = `inventario-completo-${stamp}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    mostrarToast('Inventario exportado correctamente', 'success');
+  } catch (error) {
+    mostrarToast('Error al exportar inventario: ' + error.message, 'error');
+  } finally {
+    mostrarLoading(false);
+  }
+}
+
+async function iniciarMovimientoInventario() {
+  mostrarFormulario('formMovimiento');
+  mostrarLoading(true);
+
+  try {
+    const [productos, bodegas] = await Promise.all([
+      llamarAPI('listarProductos'),
+      llamarAPI('listarBodegas')
+    ]);
+
+    productosMovimientoCache = productos || [];
+    bodegasMovimientoCache = bodegas || [];
+
+    const selectOrigen = document.getElementById('movBodegaOrigen');
+    const selectDestino = document.getElementById('movBodegaDestino');
+
+    const options = bodegasMovimientoCache
+      .map(b => `<option value="${b.ID}">${b.Nombre || b.ID} (${b.ID})</option>`)
+      .join('');
+
+    if (selectOrigen) {
+      selectOrigen.innerHTML = '<option value="">Seleccione bodega origen</option>' + options;
+      selectOrigen.value = '';
+    }
+
+    if (selectDestino) {
+      selectDestino.innerHTML = '<option value="">Seleccione bodega destino</option>' + options;
+      selectDestino.value = '';
+    }
+
+    const form = document.querySelector('#formMovimiento form');
+    if (form) form.reset();
+
+    const movProductoID = document.getElementById('movProductoID');
+    const movBuscarProducto = document.getElementById('movBuscarProducto');
+    const movProductoSeleccionadoNombre = document.getElementById('movProductoSeleccionadoNombre');
+
+    if (movProductoID) movProductoID.value = '';
+    if (movBuscarProducto) movBuscarProducto.value = '';
+    if (movProductoSeleccionadoNombre) movProductoSeleccionadoNombre.value = '';
+
+    actualizarCamposMovimiento();
+  } catch (error) {
+    mostrarToast('Error al preparar formulario de movimiento: ' + error.message, 'error');
+  } finally {
+    mostrarLoading(false);
+  }
+}
+
+function buscarProductoMovimientoEnTiempoReal(query) {
+  const resultadosDiv = document.getElementById('resultadosProductoMovimiento');
+  if (!resultadosDiv) return;
+
+  const queryLower = String(query || '').trim().toLowerCase();
+  if (!queryLower || queryLower.length < 2) {
+    resultadosDiv.classList.remove('active');
+    return;
+  }
+
+  if (!productosMovimientoCache || productosMovimientoCache.length === 0) {
+    resultadosDiv.innerHTML = '<div style="padding: 12px; color: #999;">Cargando productos...</div>';
+    resultadosDiv.classList.add('active');
+    return;
+  }
+
+  const resultados = productosMovimientoCache.filter(producto => {
+    const referencia = String(producto.Referencia || '').trim().toLowerCase();
+    const descripcion = String(producto.Descripcion || '').trim().toLowerCase();
+    return referencia.includes(queryLower) || descripcion.includes(queryLower);
+  });
+
+  if (resultados.length === 0) {
+    resultadosDiv.innerHTML = '<div style="padding: 12px; color: #999;">No se encontraron productos</div>';
+    resultadosDiv.classList.add('active');
+    return;
+  }
+
+  resultadosDiv.innerHTML = '';
+  resultados.slice(0, 8).forEach(producto => {
+    const div = document.createElement('div');
+    div.className = 'search-result-item';
+    div.innerHTML = `
+      <div class="search-result-main">${producto.Referencia || 'SIN REF'} - ${producto.Descripcion || 'Sin descripción'}</div>
+      <div class="search-result-sub">ID: ${producto.ID} | Categoría: ${producto.Categoria || 'N/A'}</div>
+    `;
+    div.onclick = () => {
+      const movProductoID = document.getElementById('movProductoID');
+      const movBuscarProducto = document.getElementById('movBuscarProducto');
+      const movProductoSeleccionadoNombre = document.getElementById('movProductoSeleccionadoNombre');
+
+      if (movProductoID) movProductoID.value = producto.ID;
+      if (movBuscarProducto) movBuscarProducto.value = `${producto.Referencia || ''} - ${producto.Descripcion || ''}`.trim();
+      if (movProductoSeleccionadoNombre) movProductoSeleccionadoNombre.value = `${producto.ID} | ${producto.Referencia || ''} - ${producto.Descripcion || ''}`.trim();
+
+      resultadosDiv.classList.remove('active');
+    };
+    resultadosDiv.appendChild(div);
+  });
+
+  resultadosDiv.classList.add('active');
+}
+
+function actualizarCamposMovimiento() {
+  const tipo = document.getElementById('tipoMovimiento')?.value || 'ENTRADA';
+  const campoOrigen = document.getElementById('campoMovBodegaOrigen');
+  const campoDestino = document.getElementById('campoMovBodegaDestino');
+  const selectOrigen = document.getElementById('movBodegaOrigen');
+  const selectDestino = document.getElementById('movBodegaDestino');
+
+  if (!campoOrigen || !campoDestino || !selectOrigen || !selectDestino) return;
+
+  if (tipo === 'ENTRADA') {
+    campoOrigen.style.display = 'none';
+    selectOrigen.required = false;
+    selectOrigen.value = '';
+
+    campoDestino.style.display = 'block';
+    selectDestino.required = true;
+    return;
+  }
+
+  if (tipo === 'SALIDA') {
+    campoOrigen.style.display = 'block';
+    selectOrigen.required = true;
+
+    campoDestino.style.display = 'none';
+    selectDestino.required = false;
+    selectDestino.value = '';
+    return;
+  }
+
+  campoOrigen.style.display = 'block';
+  campoDestino.style.display = 'block';
+  selectOrigen.required = true;
+  selectDestino.required = true;
+}
+
 async function registrarMovimiento(event) {
   event.preventDefault();
   mostrarLoading(true);
+  const sesion = obtenerSesionActiva();
+  const usuarioRol = sesion?.rol || '';
+  const admin = esUsuarioAdministrador();
   
   const data = {
     Tipo: document.getElementById('tipoMovimiento').value,
-    ProductoID: document.getElementById('movProductoID').value,
-    BodegaOrigen: document.getElementById('movBodegaOrigen').value,
-    BodegaDestino: document.getElementById('movBodegaDestino').value,
-    Cantidad: parseInt(document.getElementById('movCantidad').value),
-    Usuario: 'Usuario Web'
+    ProductoID: (document.getElementById('movProductoID').value || '').trim(),
+    BodegaOrigen: (document.getElementById('movBodegaOrigen').value || '').trim(),
+    BodegaDestino: (document.getElementById('movBodegaDestino').value || '').trim(),
+    Cantidad: Number(document.getElementById('movCantidad').value),
+    Usuario: sesion?.nombre || 'Usuario Web',
+    UsuarioRol: usuarioRol,
+    PermitirNegativo: false
   };
+
+  if (!data.ProductoID) {
+    mostrarToast('Debe seleccionar un producto', 'warning');
+    mostrarLoading(false);
+    return;
+  }
+
+  if (!Number.isFinite(data.Cantidad) || data.Cantidad <= 0) {
+    mostrarToast('La cantidad debe ser mayor a cero', 'warning');
+    mostrarLoading(false);
+    return;
+  }
+
+  if (data.Tipo === 'ENTRADA' && !data.BodegaDestino) {
+    mostrarToast('Debe seleccionar la bodega destino', 'warning');
+    mostrarLoading(false);
+    return;
+  }
+
+  if (data.Tipo === 'SALIDA' && !data.BodegaOrigen) {
+    mostrarToast('Debe seleccionar la bodega origen', 'warning');
+    mostrarLoading(false);
+    return;
+  }
+
+  if (data.Tipo === 'TRASLADO') {
+    if (!data.BodegaOrigen || !data.BodegaDestino) {
+      mostrarToast('Debe seleccionar bodega origen y destino', 'warning');
+      mostrarLoading(false);
+      return;
+    }
+    if (data.BodegaOrigen === data.BodegaDestino) {
+      mostrarToast('La bodega origen y destino deben ser diferentes', 'warning');
+      mostrarLoading(false);
+      return;
+    }
+  }
   
   try {
     await llamarAPI('registrarMovimiento', data);
@@ -3356,6 +3803,23 @@ async function registrarMovimiento(event) {
     event.target.reset();
     listarInventario();
   } catch (error) {
+    const mensaje = String(error.message || '');
+    if (admin && mensaje.toLowerCase().includes('stock insuficiente')) {
+      const confirmar = confirm('El movimiento dejará inventario en negativo. ¿Desea continuar como Administrador?');
+      if (confirmar) {
+        try {
+          await llamarAPI('registrarMovimiento', { ...data, PermitirNegativo: true });
+          mostrarToast('Movimiento registrado con permiso de administrador', 'warning');
+          ocultarFormulario('formMovimiento');
+          event.target.reset();
+          listarInventario();
+          return;
+        } catch (errorAdmin) {
+          mostrarToast('Error al registrar movimiento: ' + errorAdmin.message, 'error');
+          return;
+        }
+      }
+    }
     mostrarToast('Error al registrar movimiento: ' + error.message, 'error');
   } finally {
     mostrarLoading(false);
@@ -3457,8 +3921,13 @@ window.cambiarPaginaProductos = cambiarPaginaProductos;
 window.aplicarFiltrosProductos = aplicarFiltrosProductos;
 window.limpiarFiltrosProductos = limpiarFiltrosProductos;
 window.crearBodega = crearBodega;
-window.crearPedido = crearPedido;
+window.iniciarMovimientoInventario = iniciarMovimientoInventario;
+window.exportarInventarioCompleto = exportarInventarioCompleto;
+window.aplicarFiltrosInventario = aplicarFiltrosInventario;
+window.limpiarFiltrosInventario = limpiarFiltrosInventario;
 window.registrarMovimiento = registrarMovimiento;
+window.buscarProductoMovimientoEnTiempoReal = buscarProductoMovimientoEnTiempoReal;
+window.actualizarCamposMovimiento = actualizarCamposMovimiento;
 window.crearRecaudo = crearRecaudo;
 window.crearFormaPago = crearFormaPago;
 window.crearAsesor = crearAsesor;
