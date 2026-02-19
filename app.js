@@ -270,8 +270,19 @@ function handleSwipe() {
 // Reemplaza esta URL con la URL de tu despliegue de Google Apps Script
 const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwxl71I6GbDmrLn1H6q5F97JDZ2Ka2WSbUFyDHpRhXd25lIehVw_VMSt9zmLfaU3eSp/exec';
 
+// IMPORTANTE: Si cambias la BACKEND_URL arriba, limpia el localStorage para que tome efecto
+// Puedes hacerlo desde la consola del navegador con: localStorage.removeItem('crmApiUrl')
+
 // La URL puede ser sobrescrita desde el frontend si es necesario
-let API_URL = localStorage.getItem('crmApiUrl') || BACKEND_URL;
+// Prioriza BACKEND_URL si existe, luego localStorage
+let API_URL = BACKEND_URL || localStorage.getItem('crmApiUrl') || '';
+
+// Si BACKEND_URL está configurado correctamente, actualizar localStorage
+if (BACKEND_URL && !BACKEND_URL.includes('TU_DEPLOYMENT_ID')) {
+  localStorage.setItem('crmApiUrl', BACKEND_URL);
+  API_URL = BACKEND_URL;
+}
+
 let pipelineData = null;
 
 // Configuración general
@@ -316,17 +327,16 @@ function inicializarApp() {
     urlInput.value = API_URL;
   }
   
+  // Ocultar banner de configuración si hay una URL válida
+  const configBanner = document.getElementById('configBanner');
+  if (API_URL && API_URL.length > 20 && !API_URL.includes('TU_DEPLOYMENT_ID')) {
+    if (configBanner) {
+      configBanner.classList.add('hidden');
+    }
+  }
+  
   // Verificar conexión con el backend
   verificarConexion();
-  
-  // Solo mostrar banner de configuración si la URL es la por defecto y no funciona
-  if (API_URL === BACKEND_URL && BACKEND_URL.includes('TU_DEPLOYMENT_ID')) {
-    const configBanner = document.getElementById('configBanner');
-    if (configBanner) {
-      configBanner.classList.remove('hidden');
-    }
-    actualizarEstado('Configuración requerida', 'warning');
-  }
   
   // Cargar vista inicial
   cambiarVista('dashboard');
@@ -468,6 +478,17 @@ function guardarConfiguracion() {
 }
 
 async function verificarConexion() {
+  // Verificar si hay una URL configurada
+  if (!API_URL || API_URL.includes('TU_DEPLOYMENT_ID')) {
+    actualizarEstado('Sin configurar', 'error');
+    const configBanner = document.getElementById('configBanner');
+    if (configBanner) {
+      configBanner.classList.remove('hidden');
+    }
+    mostrarToast('Por favor configura la URL del backend', 'warning');
+    return;
+  }
+  
   actualizarEstado('Conectando...', 'connecting');
   mostrarLoading(true);
   
@@ -489,7 +510,8 @@ async function verificarConexion() {
     }
   } catch (error) {
     actualizarEstado('Error de conexión', 'error');
-    mostrarToast('No se pudo conectar con el servidor: ' + error.message, 'error');
+    mostrarToast('No se pudo conectar con el servidor. Verifica tu backend de Google Apps Script.', 'error');
+    console.error('Error de conexión:', error);
   } finally {
     mostrarLoading(false);
   }
