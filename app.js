@@ -50,21 +50,52 @@ function verificarSesion() {
 function mostrarLogin() {
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('appContainer').style.display = 'none';
+  closeUserMenu();
 }
 
 function mostrarAplicacion(sesion) {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appContainer').style.display = 'flex';
-  
-  // Actualizar nombre de usuario en sidebar
-  const userNameElement = document.getElementById('userName');
-  if (userNameElement) {
-    userNameElement.textContent = sesion.nombre;
+
+  const headerUserName = document.getElementById('headerUserName');
+  const headerUserAvatar = document.getElementById('headerUserAvatar');
+  if (headerUserName) {
+    headerUserName.textContent = sesion.nombre || 'Usuario';
+  }
+  if (headerUserAvatar) {
+    const initials = (sesion.nombre || 'Usuario')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0]?.toUpperCase() || '')
+      .join('');
+    headerUserAvatar.textContent = initials || 'US';
   }
   
   // Inicializar aplicación
   inicializarApp();
 }
+
+function toggleUserMenu(event) {
+  if (event) {
+    event.stopPropagation();
+  }
+  const userMenu = document.getElementById('userMenu');
+  if (!userMenu) return;
+  userMenu.classList.toggle('open');
+}
+
+function closeUserMenu() {
+  const userMenu = document.getElementById('userMenu');
+  if (!userMenu) return;
+  userMenu.classList.remove('open');
+}
+
+document.addEventListener('click', (event) => {
+  const userMenu = document.getElementById('userMenu');
+  if (!userMenu || userMenu.contains(event.target)) return;
+  closeUserMenu();
+});
 
 function handleLogin(event) {
   event.preventDefault();
@@ -120,6 +151,7 @@ function handleLogin(event) {
 }
 
 function handleLogout() {
+  closeUserMenu();
   const confirmar = confirm('¿Deseas cerrar sesión?');
   
   if (confirmar) {
@@ -183,7 +215,7 @@ function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('mobileOverlay');
   
-  if (window.innerWidth <= 768) {
+  if (window.innerWidth <= 1024) {
     // Modo móvil
     sidebar.classList.toggle('active');
     overlay.classList.toggle('active');
@@ -197,6 +229,7 @@ function toggleSidebar() {
   } else {
     // Modo desktop
     sidebar.classList.toggle('collapsed');
+    document.body.classList.toggle('sidebar-collapsed', sidebar.classList.contains('collapsed'));
   }
 }
 
@@ -215,7 +248,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   navItems.forEach(item => {
     item.addEventListener('click', () => {
-      if (window.innerWidth <= 768) {
+      if (window.innerWidth <= 1024) {
         closeMobileSidebar();
       }
     });
@@ -227,7 +260,7 @@ let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
-    if (window.innerWidth > 768) {
+    if (window.innerWidth > 1024) {
       const sidebar = document.getElementById('sidebar');
       const overlay = document.getElementById('mobileOverlay');
       
@@ -268,7 +301,7 @@ function handleSwipe() {
 
 // URL del Backend de Google Apps Script
 // Reemplaza esta URL con la URL de tu despliegue de Google Apps Script
-const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwxl71I6GbDmrLn1H6q5F97JDZ2Ka2WSbUFyDHpRhXd25lIehVw_VMSt9zmLfaU3eSp/exec';
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwp04FHjRlJw5siSQaz_7nLx7jYd6biFiKzHsHx-g6VHvycbJpBYU0g50d-gWYVK0XD/exec';
 
 // IMPORTANTE: Si cambias la BACKEND_URL arriba, limpia el localStorage para que tome efecto
 // Puedes hacerlo desde la consola del navegador con: localStorage.removeItem('crmApiUrl')
@@ -342,20 +375,6 @@ function inicializarApp() {
   cambiarVista('dashboard');
 }
 
-
-// ========================================
-// SIDEBAR & NAVEGACIÓN
-// ========================================
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const isMobile = window.innerWidth <= 1024;
-  if (isMobile) {
-    sidebar.classList.toggle('active');
-    return;
-  }
-  sidebar.classList.toggle('collapsed');
-  document.body.classList.toggle('sidebar-collapsed', sidebar.classList.contains('collapsed'));
-}
 
 function toggleNavGroup(button) {
   const navGroup = button.parentElement;
@@ -930,33 +949,524 @@ function cerrarModalDetalle() {
 // ========================================
 // CLIENTES
 // ========================================
-async function listarClientes() {
+let clientesTablaCache = [];
+let clientesTablaFiltradosCache = [];
+let clientesPaginaActual = 1;
+const CLIENTES_PAGE_SIZE = 10;
+let productosTablaCache = [];
+let productosTablaFiltradosCache = [];
+let productosPaginaActual = 1;
+const PRODUCTOS_PAGE_SIZE = 10;
+
+const UBICACIONES_DANE_CLIENTES = [
+  {
+    codigoDepartamento: '05',
+    departamento: 'Antioquia',
+    ciudades: [
+      { nombre: 'Medellín', codigoCiudad: '05001' },
+      { nombre: 'Bello', codigoCiudad: '05088' },
+      { nombre: 'Itagüí', codigoCiudad: '05360' },
+      { nombre: 'Envigado', codigoCiudad: '05266' },
+      { nombre: 'Rionegro', codigoCiudad: '05615' }
+    ]
+  },
+  {
+    codigoDepartamento: '08',
+    departamento: 'Atlántico',
+    ciudades: [
+      { nombre: 'Barranquilla', codigoCiudad: '08001' },
+      { nombre: 'Soledad', codigoCiudad: '08758' },
+      { nombre: 'Malambo', codigoCiudad: '08433' }
+    ]
+  },
+  {
+    codigoDepartamento: '11',
+    departamento: 'Bogotá D.C.',
+    ciudades: [
+      { nombre: 'Bogotá D.C.', codigoCiudad: '11001' }
+    ]
+  },
+  {
+    codigoDepartamento: '13',
+    departamento: 'Bolívar',
+    ciudades: [
+      { nombre: 'Cartagena', codigoCiudad: '13001' },
+      { nombre: 'Magangué', codigoCiudad: '13430' }
+    ]
+  },
+  {
+    codigoDepartamento: '15',
+    departamento: 'Boyacá',
+    ciudades: [
+      { nombre: 'Tunja', codigoCiudad: '15001' },
+      { nombre: 'Duitama', codigoCiudad: '15238' },
+      { nombre: 'Sogamoso', codigoCiudad: '15759' }
+    ]
+  },
+  {
+    codigoDepartamento: '17',
+    departamento: 'Caldas',
+    ciudades: [
+      { nombre: 'Manizales', codigoCiudad: '17001' },
+      { nombre: 'La Dorada', codigoCiudad: '17380' }
+    ]
+  },
+  {
+    codigoDepartamento: '18',
+    departamento: 'Caquetá',
+    ciudades: [
+      { nombre: 'Florencia', codigoCiudad: '18001' }
+    ]
+  },
+  {
+    codigoDepartamento: '19',
+    departamento: 'Cauca',
+    ciudades: [
+      { nombre: 'Popayán', codigoCiudad: '19001' },
+      { nombre: 'Santander de Quilichao', codigoCiudad: '19698' }
+    ]
+  },
+  {
+    codigoDepartamento: '20',
+    departamento: 'Cesar',
+    ciudades: [
+      { nombre: 'Valledupar', codigoCiudad: '20001' },
+      { nombre: 'Aguachica', codigoCiudad: '20011' }
+    ]
+  },
+  {
+    codigoDepartamento: '23',
+    departamento: 'Córdoba',
+    ciudades: [
+      { nombre: 'Montería', codigoCiudad: '23001' },
+      { nombre: 'Lorica', codigoCiudad: '23417' }
+    ]
+  },
+  {
+    codigoDepartamento: '25',
+    departamento: 'Cundinamarca',
+    ciudades: [
+      { nombre: 'Soacha', codigoCiudad: '25754' },
+      { nombre: 'Chía', codigoCiudad: '25175' },
+      { nombre: 'Zipaquirá', codigoCiudad: '25899' }
+    ]
+  },
+  {
+    codigoDepartamento: '41',
+    departamento: 'Huila',
+    ciudades: [
+      { nombre: 'Neiva', codigoCiudad: '41001' },
+      { nombre: 'Pitalito', codigoCiudad: '41551' }
+    ]
+  },
+  {
+    codigoDepartamento: '47',
+    departamento: 'Magdalena',
+    ciudades: [
+      { nombre: 'Santa Marta', codigoCiudad: '47001' },
+      { nombre: 'Ciénaga', codigoCiudad: '47189' }
+    ]
+  },
+  {
+    codigoDepartamento: '50',
+    departamento: 'Meta',
+    ciudades: [
+      { nombre: 'Villavicencio', codigoCiudad: '50001' }
+    ]
+  },
+  {
+    codigoDepartamento: '52',
+    departamento: 'Nariño',
+    ciudades: [
+      { nombre: 'Pasto', codigoCiudad: '52001' },
+      { nombre: 'Ipiales', codigoCiudad: '52356' }
+    ]
+  },
+  {
+    codigoDepartamento: '54',
+    departamento: 'Norte de Santander',
+    ciudades: [
+      { nombre: 'Cúcuta', codigoCiudad: '54001' },
+      { nombre: 'Ocaña', codigoCiudad: '54498' }
+    ]
+  },
+  {
+    codigoDepartamento: '63',
+    departamento: 'Quindío',
+    ciudades: [
+      { nombre: 'Armenia', codigoCiudad: '63001' }
+    ]
+  },
+  {
+    codigoDepartamento: '66',
+    departamento: 'Risaralda',
+    ciudades: [
+      { nombre: 'Pereira', codigoCiudad: '66001' },
+      { nombre: 'Dosquebradas', codigoCiudad: '66170' }
+    ]
+  },
+  {
+    codigoDepartamento: '68',
+    departamento: 'Santander',
+    ciudades: [
+      { nombre: 'Bucaramanga', codigoCiudad: '68001' },
+      { nombre: 'Floridablanca', codigoCiudad: '68276' },
+      { nombre: 'Barrancabermeja', codigoCiudad: '68081' }
+    ]
+  },
+  {
+    codigoDepartamento: '70',
+    departamento: 'Sucre',
+    ciudades: [
+      { nombre: 'Sincelejo', codigoCiudad: '70001' }
+    ]
+  },
+  {
+    codigoDepartamento: '73',
+    departamento: 'Tolima',
+    ciudades: [
+      { nombre: 'Ibagué', codigoCiudad: '73001' },
+      { nombre: 'Espinal', codigoCiudad: '73268' }
+    ]
+  },
+  {
+    codigoDepartamento: '76',
+    departamento: 'Valle del Cauca',
+    ciudades: [
+      { nombre: 'Cali', codigoCiudad: '76001' },
+      { nombre: 'Palmira', codigoCiudad: '76520' },
+      { nombre: 'Buenaventura', codigoCiudad: '76109' },
+      { nombre: 'Tuluá', codigoCiudad: '76834' }
+    ]
+  }
+];
+
+function prepararFormularioCliente() {
+  const formCliente = document.querySelector('#formCliente form');
+  if (formCliente) {
+    formCliente.reset();
+  }
+
+  const tipoPersona = document.getElementById('tipoPersona');
+  if (tipoPersona) {
+    tipoPersona.value = 'JURIDICA';
+  }
+
+  const tipoIdentificacion = document.getElementById('tipoIdentificacion');
+  if (tipoIdentificacion) {
+    tipoIdentificacion.value = 'NIT';
+  }
+
+  togglePersonaFields();
+  actualizarTipoIdentificacionCliente();
+  cargarDepartamentosCliente();
+  cargarAsesoresCliente();
+}
+
+function actualizarTipoIdentificacionCliente() {
+  const tipoIdentificacion = document.getElementById('tipoIdentificacion');
+  const identificacion = document.getElementById('identificacion');
+  const grupoDv = document.getElementById('grupoDvCliente');
+  const dvCliente = document.getElementById('dvCliente');
+
+  if (!tipoIdentificacion || !identificacion || !grupoDv || !dvCliente) return;
+
+  const tipo = tipoIdentificacion.value;
+
+  identificacion.value = '';
+  dvCliente.value = '';
+
+  if (tipo === 'NIT') {
+    grupoDv.style.display = 'block';
+    identificacion.inputMode = 'numeric';
+    identificacion.setAttribute('pattern', '[0-9]+');
+    identificacion.setAttribute('maxlength', '15');
+    identificacion.setAttribute('placeholder', 'Solo números');
+  } else if (tipo === 'PAS') {
+    grupoDv.style.display = 'none';
+    identificacion.inputMode = 'text';
+    identificacion.setAttribute('pattern', '[A-Za-z0-9]+');
+    identificacion.setAttribute('maxlength', '20');
+    identificacion.setAttribute('placeholder', 'Letras y números');
+  } else {
+    grupoDv.style.display = 'none';
+    identificacion.inputMode = 'numeric';
+    identificacion.setAttribute('pattern', '[0-9]+');
+    identificacion.setAttribute('maxlength', '15');
+    identificacion.setAttribute('placeholder', 'Solo números');
+  }
+
+  dvCliente.required = false;
+}
+
+function validarIdentificacionCliente() {
+  const tipoIdentificacion = document.getElementById('tipoIdentificacion')?.value;
+  const identificacion = document.getElementById('identificacion')?.value?.trim() || '';
+  const dvCliente = document.getElementById('dvCliente')?.value?.trim().toUpperCase() || '';
+
+  if (!tipoIdentificacion || !identificacion) {
+    return 'Completa el tipo e identificación del cliente.';
+  }
+
+  if (tipoIdentificacion === 'NIT' && !/^\d{6,15}$/.test(identificacion)) {
+    return 'El NIT debe contener solo números (entre 6 y 15 dígitos).';
+  }
+
+  if ((tipoIdentificacion === 'CC' || tipoIdentificacion === 'CE') && !/^\d{5,15}$/.test(identificacion)) {
+    return 'La identificación debe contener solo números (entre 5 y 15 dígitos).';
+  }
+
+  if (tipoIdentificacion === 'PAS' && !/^[A-Za-z0-9]{5,20}$/.test(identificacion)) {
+    return 'El pasaporte debe tener entre 5 y 20 caracteres alfanuméricos.';
+  }
+
+  if (tipoIdentificacion === 'NIT' && dvCliente && !/^[0-9K]$/i.test(dvCliente)) {
+    return 'El DV debe ser un solo carácter: 0-9 o K.';
+  }
+
+  return null;
+}
+
+async function cargarAsesoresCliente() {
+  const asesorSelect = document.getElementById('asesor');
+  if (!asesorSelect) return;
+
+  asesorSelect.innerHTML = '<option value="">Seleccione un asesor</option>';
+
+  try {
+    const asesores = await llamarAPI('listarAsesores');
+    asesores
+      .filter(asesor => asesor.Estado === 'ACTIVO')
+      .forEach(asesor => {
+        const option = document.createElement('option');
+        option.value = asesor.Nombre;
+        option.textContent = asesor.Nombre;
+        asesorSelect.appendChild(option);
+      });
+  } catch (error) {
+    ['Administrador', 'Comercial Norte', 'Comercial Centro', 'Comercial Sur'].forEach(nombre => {
+      const option = document.createElement('option');
+      option.value = nombre;
+      option.textContent = nombre;
+      asesorSelect.appendChild(option);
+    });
+  }
+}
+
+function cargarDepartamentosCliente() {
+  const departamentoSelect = document.getElementById('departamento');
+  const ciudadSelect = document.getElementById('ciudad');
+  const codigoDaneInput = document.getElementById('codigoDaneCliente');
+
+  if (!departamentoSelect || !ciudadSelect || !codigoDaneInput) return;
+
+  departamentoSelect.innerHTML = '<option value="">Seleccione departamento</option>';
+
+  UBICACIONES_DANE_CLIENTES.forEach(item => {
+    const option = document.createElement('option');
+    option.value = item.codigoDepartamento;
+    option.textContent = `${item.departamento} (${item.codigoDepartamento})`;
+    option.dataset.nombre = item.departamento;
+    departamentoSelect.appendChild(option);
+  });
+
+  ciudadSelect.innerHTML = '<option value="">Seleccione ciudad</option>';
+  ciudadSelect.disabled = true;
+  codigoDaneInput.value = '';
+}
+
+function actualizarCiudadesCliente() {
+  const departamentoSelect = document.getElementById('departamento');
+  const ciudadSelect = document.getElementById('ciudad');
+  const codigoDaneInput = document.getElementById('codigoDaneCliente');
+
+  if (!departamentoSelect || !ciudadSelect || !codigoDaneInput) return;
+
+  const codigoDepartamento = departamentoSelect.value;
+  const departamentoSeleccionado = UBICACIONES_DANE_CLIENTES.find(
+    item => item.codigoDepartamento === codigoDepartamento
+  );
+
+  ciudadSelect.innerHTML = '<option value="">Seleccione ciudad</option>';
+  codigoDaneInput.value = '';
+
+  if (!departamentoSeleccionado) {
+    ciudadSelect.disabled = true;
+    return;
+  }
+
+  departamentoSeleccionado.ciudades.forEach(ciudad => {
+    const option = document.createElement('option');
+    option.value = ciudad.nombre;
+    option.textContent = `${ciudad.nombre} (${ciudad.codigoCiudad})`;
+    option.dataset.codigo = ciudad.codigoCiudad;
+    ciudadSelect.appendChild(option);
+  });
+
+  ciudadSelect.disabled = false;
+}
+
+function actualizarCodigoDaneCliente() {
+  const ciudadSelect = document.getElementById('ciudad');
+  const codigoDaneInput = document.getElementById('codigoDaneCliente');
+
+  if (!ciudadSelect || !codigoDaneInput) return;
+
+  const optionSeleccionada = ciudadSelect.options[ciudadSelect.selectedIndex];
+  codigoDaneInput.value = optionSeleccionada?.dataset?.codigo || '';
+}
+
+function renderTablaClientesPaginada() {
+  const tbody = document.querySelector('#tablaClientes tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (!clientesTablaFiltradosCache.length) {
+    actualizarControlesPaginacionClientes();
+    return;
+  }
+
+  const totalPaginas = Math.max(1, Math.ceil(clientesTablaFiltradosCache.length / CLIENTES_PAGE_SIZE));
+  if (clientesPaginaActual > totalPaginas) {
+    clientesPaginaActual = totalPaginas;
+  }
+
+  const inicio = (clientesPaginaActual - 1) * CLIENTES_PAGE_SIZE;
+  const fin = inicio + CLIENTES_PAGE_SIZE;
+  const clientesPagina = clientesTablaFiltradosCache.slice(inicio, fin);
+
+  clientesPagina.forEach(cliente => {
+    const tr = document.createElement('tr');
+    const nombre = cliente.RazonSocial || `${cliente.Nombres} ${cliente.Apellidos}`;
+
+    tr.innerHTML = `
+      <td>${cliente.Identificacion}</td>
+      <td>${nombre}</td>
+      <td>${cliente.Telefono1 || '-'}</td>
+      <td>${cliente.CorreoElectronico || '-'}</td>
+      <td>${cliente.Ciudad || '-'}</td>
+      <td>
+        <div class="acciones-cliente">
+          <button class="btn-table edit" onclick="editarClienteTabla('${cliente.ID}')" title="Modificar" aria-label="Modificar">✏</button>
+          <button class="btn-table delete" onclick="eliminarClienteTabla('${cliente.ID}')" title="Eliminar" aria-label="Eliminar">🗑</button>
+        </div>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+
+  actualizarControlesPaginacionClientes();
+}
+
+function actualizarControlesPaginacionClientes() {
+  const contenedor = document.getElementById('clientesPagination');
+  if (!contenedor) return;
+
+  const totalRegistros = clientesTablaFiltradosCache.length;
+  const totalPaginas = Math.max(1, Math.ceil(totalRegistros / CLIENTES_PAGE_SIZE));
+  const pagina = Math.min(clientesPaginaActual, totalPaginas);
+  const inicio = totalRegistros === 0 ? 0 : ((pagina - 1) * CLIENTES_PAGE_SIZE) + 1;
+  const fin = Math.min(pagina * CLIENTES_PAGE_SIZE, totalRegistros);
+
+  contenedor.innerHTML = `
+    <div class="table-pagination-info">Mostrando ${inicio}-${fin} de ${totalRegistros} clientes</div>
+    <div class="table-pagination-controls">
+      <button class="btn-pagination" onclick="cambiarPaginaClientes(-1)" ${pagina <= 1 ? 'disabled' : ''}>Anterior</button>
+      <span class="table-pagination-info">Página ${pagina} de ${totalPaginas}</span>
+      <button class="btn-pagination" onclick="cambiarPaginaClientes(1)" ${pagina >= totalPaginas ? 'disabled' : ''}>Siguiente</button>
+    </div>
+  `;
+}
+
+function cambiarPaginaClientes(delta) {
+  const totalPaginas = Math.max(1, Math.ceil(clientesTablaFiltradosCache.length / CLIENTES_PAGE_SIZE));
+  const nuevaPagina = clientesPaginaActual + delta;
+
+  if (nuevaPagina < 1 || nuevaPagina > totalPaginas) return;
+
+  clientesPaginaActual = nuevaPagina;
+  renderTablaClientesPaginada();
+}
+
+function actualizarOpcionesFiltroCiudadClientes() {
+  const filtroCiudad = document.getElementById('clienteFiltroCiudad');
+  if (!filtroCiudad) return;
+
+  const ciudadSeleccionada = filtroCiudad.value;
+  const ciudades = Array.from(new Set(
+    clientesTablaCache
+      .map(cliente => (cliente.Ciudad || '').toString().trim())
+      .filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b, 'es'));
+
+  filtroCiudad.innerHTML = '<option value="">Todas las ciudades</option>';
+  ciudades.forEach(ciudad => {
+    const option = document.createElement('option');
+    option.value = ciudad;
+    option.textContent = ciudad;
+    filtroCiudad.appendChild(option);
+  });
+
+  if (ciudadSeleccionada && ciudades.includes(ciudadSeleccionada)) {
+    filtroCiudad.value = ciudadSeleccionada;
+  }
+}
+
+function aplicarFiltrosClientes(resetPagina = true) {
+  const searchValue = (document.getElementById('clienteSearch')?.value || '').trim().toLowerCase();
+  const tipoValue = document.getElementById('clienteFiltroTipo')?.value || '';
+  const ciudadValue = document.getElementById('clienteFiltroCiudad')?.value || '';
+
+  clientesTablaFiltradosCache = clientesTablaCache.filter(cliente => {
+    const nombre = (cliente.RazonSocial || `${cliente.Nombres || ''} ${cliente.Apellidos || ''}`).toLowerCase();
+    const identificacion = (cliente.Identificacion || '').toString().toLowerCase();
+    const email = (cliente.CorreoElectronico || '').toLowerCase();
+    const ciudad = (cliente.Ciudad || '').toString();
+    const tipo = (cliente.TipoPersona || '').toString();
+
+    const cumpleBusqueda = !searchValue
+      || nombre.includes(searchValue)
+      || identificacion.includes(searchValue)
+      || email.includes(searchValue);
+    const cumpleTipo = !tipoValue || tipo === tipoValue;
+    const cumpleCiudad = !ciudadValue || ciudad === ciudadValue;
+
+    return cumpleBusqueda && cumpleTipo && cumpleCiudad;
+  });
+
+  if (resetPagina) {
+    clientesPaginaActual = 1;
+  }
+
+  renderTablaClientesPaginada();
+}
+
+function limpiarFiltrosClientes() {
+  const search = document.getElementById('clienteSearch');
+  const filtroTipo = document.getElementById('clienteFiltroTipo');
+  const filtroCiudad = document.getElementById('clienteFiltroCiudad');
+
+  if (search) search.value = '';
+  if (filtroTipo) filtroTipo.value = '';
+  if (filtroCiudad) filtroCiudad.value = '';
+
+  aplicarFiltrosClientes();
+}
+
+async function listarClientes(resetPagina = true) {
   mostrarLoading(true);
   
   try {
     const clientes = await llamarAPI('listarClientes');
-    const tbody = document.querySelector('#tablaClientes tbody');
-    
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    clientes.forEach(cliente => {
-      const tr = document.createElement('tr');
-      const nombre = cliente.RazonSocial || `${cliente.Nombres} ${cliente.Apellidos}`;
-      
-      tr.innerHTML = `
-        <td>${cliente.ID}</td>
-        <td>${cliente.Identificacion}</td>
-        <td>${nombre}</td>
-        <td>${cliente.Telefono1 || '-'}</td>
-        <td>${cliente.CorreoElectronico || '-'}</td>
-        <td>${cliente.Ciudad || '-'}</td>
-        <td><span class="badge badge-success">${cliente.Estado}</span></td>
-      `;
-      
-      tbody.appendChild(tr);
-    });
+    clientesTablaCache = clientes || [];
+    actualizarOpcionesFiltroCiudadClientes();
+    clientesTablaFiltradosCache = [...clientesTablaCache];
+    if (resetPagina) {
+      clientesPaginaActual = 1;
+    }
+    aplicarFiltrosClientes(resetPagina);
   } catch (error) {
     mostrarToast('Error al cargar clientes: ' + error.message, 'error');
   } finally {
@@ -983,17 +1493,35 @@ function togglePersonaFields() {
 
 async function crearCliente(event) {
   event.preventDefault();
+
+  const errorValidacion = validarIdentificacionCliente();
+  if (errorValidacion) {
+    mostrarToast(errorValidacion, 'warning');
+    return;
+  }
+
   mostrarLoading(true);
+
+  const departamentoSelect = document.getElementById('departamento');
+  const ciudadSelect = document.getElementById('ciudad');
+  const opcionDepartamento = departamentoSelect?.options[departamentoSelect.selectedIndex];
   
   const data = {
     TipoPersona: document.getElementById('tipoPersona').value,
+    TipoIdentificacion: document.getElementById('tipoIdentificacion').value,
     Identificacion: document.getElementById('identificacion').value,
+    DV: document.getElementById('dvCliente').value.toUpperCase(),
     Telefono1: document.getElementById('telefono1').value,
     CorreoElectronico: document.getElementById('correoElectronico').value,
     DireccionEntrega: document.getElementById('direccionEntrega').value,
-    Ciudad: document.getElementById('ciudad').value,
+    Ciudad: ciudadSelect ? ciudadSelect.value : '',
+    CodigoCiudad: document.getElementById('codigoDaneCliente').value,
+    Departamento: opcionDepartamento?.dataset?.nombre || '',
+    CodigoDepartamento: departamentoSelect ? departamentoSelect.value : '',
     Asesor: document.getElementById('asesor').value
   };
+
+  const clienteIdEdicion = document.getElementById('clienteIdEdicion')?.value;
   
   if (data.TipoPersona === 'JURIDICA') {
     data.RazonSocial = document.getElementById('razonSocial').value;
@@ -1003,8 +1531,14 @@ async function crearCliente(event) {
   }
   
   try {
-    const resultado = await llamarAPI('crearCliente', data);
-    mostrarToast(`Cliente creado: ${resultado.ID}`, 'success');
+    let resultado;
+    if (clienteIdEdicion) {
+      resultado = await llamarAPI('actualizarCliente', { id: clienteIdEdicion, data });
+      mostrarToast(`Cliente actualizado: ${resultado.ID}`, 'success');
+    } else {
+      resultado = await llamarAPI('crearCliente', data);
+      mostrarToast(`Cliente creado: ${resultado.ID}`, 'success');
+    }
     ocultarFormulario('formCliente');
     event.target.reset();
     listarClientes();
@@ -1015,33 +1549,262 @@ async function crearCliente(event) {
   }
 }
 
+function editarClienteTabla(clienteId) {
+  const cliente = clientesTablaCache.find(item => item.ID === clienteId);
+  if (!cliente) {
+    mostrarToast('No se encontró el cliente para editar', 'warning');
+    return;
+  }
+
+  mostrarFormulario('formCliente');
+
+  document.getElementById('clienteModalTitle').textContent = 'Modificar Cliente';
+  document.getElementById('btnGuardarCliente').textContent = '💾 Actualizar Cliente';
+  document.getElementById('clienteIdEdicion').value = cliente.ID || '';
+
+  const tipoPersona = cliente.TipoPersona || 'JURIDICA';
+  document.getElementById('tipoPersona').value = tipoPersona;
+  togglePersonaFields();
+
+  const tipoIdentificacion = cliente.TipoIdentificacion || 'NIT';
+  document.getElementById('tipoIdentificacion').value = tipoIdentificacion;
+  actualizarTipoIdentificacionCliente();
+
+  document.getElementById('identificacion').value = cliente.Identificacion || '';
+  document.getElementById('dvCliente').value = (cliente.DV || '').toString().toUpperCase();
+  document.getElementById('telefono1').value = cliente.Telefono1 || '';
+  document.getElementById('correoElectronico').value = cliente.CorreoElectronico || '';
+  document.getElementById('direccionEntrega').value = cliente.DireccionEntrega || '';
+
+  if (tipoPersona === 'JURIDICA') {
+    document.getElementById('razonSocial').value = cliente.RazonSocial || '';
+  } else {
+    document.getElementById('nombres').value = cliente.Nombres || '';
+    document.getElementById('apellidos').value = cliente.Apellidos || '';
+  }
+
+  const departamento = document.getElementById('departamento');
+  const ciudad = document.getElementById('ciudad');
+  const codigoDane = document.getElementById('codigoDaneCliente');
+
+  if (cliente.CodigoDepartamento) {
+    departamento.value = cliente.CodigoDepartamento;
+    actualizarCiudadesCliente();
+  }
+
+  if (cliente.Ciudad) {
+    const opcionCiudad = Array.from(ciudad.options).find(op => op.value === cliente.Ciudad);
+    if (opcionCiudad) {
+      ciudad.value = cliente.Ciudad;
+      actualizarCodigoDaneCliente();
+    } else {
+      const extraOption = document.createElement('option');
+      extraOption.value = cliente.Ciudad;
+      extraOption.textContent = cliente.Ciudad;
+      extraOption.dataset.codigo = cliente.CodigoCiudad || '';
+      ciudad.appendChild(extraOption);
+      ciudad.value = cliente.Ciudad;
+      codigoDane.value = cliente.CodigoCiudad || '';
+      ciudad.disabled = false;
+    }
+  }
+
+  setTimeout(() => {
+    const asesorSelect = document.getElementById('asesor');
+    if (!asesorSelect) return;
+
+    const asesorValor = cliente.Asesor || '';
+    const existe = Array.from(asesorSelect.options).some(op => op.value === asesorValor);
+    if (!existe && asesorValor) {
+      const option = document.createElement('option');
+      option.value = asesorValor;
+      option.textContent = asesorValor;
+      asesorSelect.appendChild(option);
+    }
+    asesorSelect.value = asesorValor;
+  }, 150);
+}
+
+async function eliminarClienteTabla(clienteId) {
+  const cliente = clientesTablaCache.find(item => item.ID === clienteId);
+  const nombre = cliente?.RazonSocial || `${cliente?.Nombres || ''} ${cliente?.Apellidos || ''}`.trim() || clienteId;
+
+  const confirmar = confirm(`¿Deseas eliminar el cliente ${nombre}?`);
+  if (!confirmar) return;
+
+  mostrarLoading(true);
+  try {
+    await llamarAPI('eliminarCliente', { id: clienteId });
+    mostrarToast('Cliente eliminado correctamente', 'success');
+    listarClientes(false);
+  } catch (error) {
+    mostrarToast('Error al eliminar cliente: ' + error.message, 'error');
+  } finally {
+    mostrarLoading(false);
+  }
+}
+
 // ========================================
 // PRODUCTOS
 // ========================================
+function prepararFormularioProducto() {
+  const formProducto = document.querySelector('#formProducto form');
+  if (formProducto) {
+    formProducto.reset();
+  }
+
+  const title = document.getElementById('productoModalTitle');
+  const btnGuardar = document.getElementById('btnGuardarProducto');
+  const productoIdEdicion = document.getElementById('productoIdEdicion');
+
+  if (title) title.textContent = 'Nuevo Producto';
+  if (btnGuardar) btnGuardar.textContent = '💾 Guardar Producto';
+  if (productoIdEdicion) productoIdEdicion.value = '';
+
+  const cantidadEnTransito = document.getElementById('cantidadEnTransito');
+  if (cantidadEnTransito) {
+    cantidadEnTransito.value = '0';
+  }
+}
+
+function renderTablaProductosPaginada() {
+  const tbody = document.querySelector('#tablaProductos tbody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '';
+
+  if (!productosTablaFiltradosCache.length) {
+    actualizarControlesPaginacionProductos();
+    return;
+  }
+
+  const totalPaginas = Math.max(1, Math.ceil(productosTablaFiltradosCache.length / PRODUCTOS_PAGE_SIZE));
+  if (productosPaginaActual > totalPaginas) {
+    productosPaginaActual = totalPaginas;
+  }
+
+  const inicio = (productosPaginaActual - 1) * PRODUCTOS_PAGE_SIZE;
+  const fin = inicio + PRODUCTOS_PAGE_SIZE;
+  const productosPagina = productosTablaFiltradosCache.slice(inicio, fin);
+
+  productosPagina.forEach(producto => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${producto.Referencia || '-'}</td>
+      <td>${producto.Descripcion || '-'}</td>
+      <td>${producto.Categoria || '-'}</td>
+      <td>${producto.Presentacion || '-'}</td>
+      <td>
+        <div class="acciones-cliente">
+          <button class="btn-table edit" onclick="editarProductoTabla('${producto.ID}')" title="Modificar" aria-label="Modificar">✏</button>
+          <button class="btn-table delete" onclick="eliminarProductoTabla('${producto.ID}')" title="Eliminar" aria-label="Eliminar">🗑</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  actualizarControlesPaginacionProductos();
+}
+
+function actualizarControlesPaginacionProductos() {
+  const contenedor = document.getElementById('productosPagination');
+  if (!contenedor) return;
+
+  const totalRegistros = productosTablaFiltradosCache.length;
+  const totalPaginas = Math.max(1, Math.ceil(totalRegistros / PRODUCTOS_PAGE_SIZE));
+  const pagina = Math.min(productosPaginaActual, totalPaginas);
+  const inicio = totalRegistros === 0 ? 0 : ((pagina - 1) * PRODUCTOS_PAGE_SIZE) + 1;
+  const fin = Math.min(pagina * PRODUCTOS_PAGE_SIZE, totalRegistros);
+
+  contenedor.innerHTML = `
+    <div class="table-pagination-info">Mostrando ${inicio}-${fin} de ${totalRegistros} productos</div>
+    <div class="table-pagination-controls">
+      <button class="btn-pagination" onclick="cambiarPaginaProductos(-1)" ${pagina <= 1 ? 'disabled' : ''}>Anterior</button>
+      <span class="table-pagination-info">Página ${pagina} de ${totalPaginas}</span>
+      <button class="btn-pagination" onclick="cambiarPaginaProductos(1)" ${pagina >= totalPaginas ? 'disabled' : ''}>Siguiente</button>
+    </div>
+  `;
+}
+
+function cambiarPaginaProductos(delta) {
+  const totalPaginas = Math.max(1, Math.ceil(productosTablaFiltradosCache.length / PRODUCTOS_PAGE_SIZE));
+  const nuevaPagina = productosPaginaActual + delta;
+
+  if (nuevaPagina < 1 || nuevaPagina > totalPaginas) return;
+
+  productosPaginaActual = nuevaPagina;
+  renderTablaProductosPaginada();
+}
+
+function actualizarOpcionesFiltroCategoriaProductos() {
+  const filtroCategoria = document.getElementById('productoFiltroCategoria');
+  if (!filtroCategoria) return;
+
+  const categoriaSeleccionada = filtroCategoria.value;
+  const categorias = Array.from(new Set(
+    productosTablaCache
+      .map(producto => (producto.Categoria || '').toString().trim())
+      .filter(Boolean)
+  )).sort((a, b) => a.localeCompare(b, 'es'));
+
+  filtroCategoria.innerHTML = '<option value="">Todas las categorías</option>';
+  categorias.forEach(categoria => {
+    const option = document.createElement('option');
+    option.value = categoria;
+    option.textContent = categoria;
+    filtroCategoria.appendChild(option);
+  });
+
+  if (categoriaSeleccionada && categorias.includes(categoriaSeleccionada)) {
+    filtroCategoria.value = categoriaSeleccionada;
+  }
+}
+
+function aplicarFiltrosProductos(resetPagina = true) {
+  const searchValue = (document.getElementById('productoSearch')?.value || '').trim().toLowerCase();
+  const categoriaValue = document.getElementById('productoFiltroCategoria')?.value || '';
+
+  productosTablaFiltradosCache = productosTablaCache.filter(producto => {
+    const referencia = (producto.Referencia || '').toLowerCase();
+    const descripcion = (producto.Descripcion || '').toLowerCase();
+    const categoria = (producto.Categoria || '').toString();
+
+    const cumpleBusqueda = !searchValue
+      || referencia.includes(searchValue)
+      || descripcion.includes(searchValue);
+    const cumpleCategoria = !categoriaValue || categoria === categoriaValue;
+
+    return cumpleBusqueda && cumpleCategoria;
+  });
+
+  if (resetPagina) {
+    productosPaginaActual = 1;
+  }
+
+  renderTablaProductosPaginada();
+}
+
+function limpiarFiltrosProductos() {
+  const search = document.getElementById('productoSearch');
+  const filtroCategoria = document.getElementById('productoFiltroCategoria');
+
+  if (search) search.value = '';
+  if (filtroCategoria) filtroCategoria.value = '';
+
+  aplicarFiltrosProductos();
+}
+
 async function listarProductos() {
   mostrarLoading(true);
   
   try {
     const productos = await llamarAPI('listarProductos');
-    const tbody = document.querySelector('#tablaProductos tbody');
-    
-    if (!tbody) return;
-    
-    tbody.innerHTML = '';
-    
-    productos.forEach(producto => {
-      const tr = document.createElement('tr');
-      
-      tr.innerHTML = `
-        <td>${producto.ID}</td>
-        <td>${producto.Referencia}</td>
-        <td>${producto.Descripcion}</td>
-        <td>${producto.Categoria || '-'}</td>
-        <td><span class="badge badge-success">${producto.Estado}</span></td>
-      `;
-      
-      tbody.appendChild(tr);
-    });
+    productosTablaCache = productos || [];
+    actualizarOpcionesFiltroCategoriaProductos();
+    productosTablaFiltradosCache = [...productosTablaCache];
+    productosPaginaActual = 1;
+    aplicarFiltrosProductos(true);
   } catch (error) {
     mostrarToast('Error al cargar productos: ' + error.message, 'error');
   } finally {
@@ -1052,22 +1815,93 @@ async function listarProductos() {
 async function crearProducto(event) {
   event.preventDefault();
   mostrarLoading(true);
+
+  const getNumber = (id) => {
+    const value = parseFloat(document.getElementById(id).value);
+    return Number.isFinite(value) ? value : 0;
+  };
   
   const data = {
     Referencia: document.getElementById('referencia').value,
-    Descripcion: document.getElementById('descripcion').value,
     Categoria: document.getElementById('categoria').value,
-    Presentacion: document.getElementById('presentacion').value
+    Descripcion: document.getElementById('descripcion').value,
+    Formato: document.getElementById('formato').value,
+    Presentacion: document.getElementById('presentacion').value,
+    CajasPorPallet: getNumber('cajasPorPallet'),
+    PesoPorCaja: getNumber('pesoPorCaja'),
+    UndEmpaque: getNumber('undEmpaque'),
+    FichasPorCaja: getNumber('fichasPorCaja'),
+    Costo: getNumber('costo'),
+    Precio1: getNumber('precio1'),
+    Precio2: getNumber('precio2'),
+    Precio3: getNumber('precio3'),
+    CodigoContable: document.getElementById('codigoContable').value,
+    CantidadEnTransito: getNumber('cantidadEnTransito')
   };
+
+  const productoIdEdicion = document.getElementById('productoIdEdicion')?.value;
   
   try {
-    const resultado = await llamarAPI('crearProducto', data);
-    mostrarToast(`Producto creado: ${resultado.ID}`, 'success');
+    let resultado;
+    if (productoIdEdicion) {
+      resultado = await llamarAPI('actualizarProducto', { id: productoIdEdicion, data });
+      mostrarToast(`Producto actualizado: ${resultado.ID}`, 'success');
+    } else {
+      resultado = await llamarAPI('crearProducto', data);
+      mostrarToast(`Producto creado: ${resultado.ID}`, 'success');
+    }
     ocultarFormulario('formProducto');
     event.target.reset();
     listarProductos();
   } catch (error) {
     mostrarToast('Error al crear producto: ' + error.message, 'error');
+  } finally {
+    mostrarLoading(false);
+  }
+}
+
+function editarProductoTabla(productoId) {
+  const producto = productosTablaCache.find(item => item.ID === productoId);
+  if (!producto) {
+    mostrarToast('No se encontró el producto para editar', 'warning');
+    return;
+  }
+
+  mostrarFormulario('formProducto');
+
+  document.getElementById('productoModalTitle').textContent = 'Modificar Producto';
+  document.getElementById('btnGuardarProducto').textContent = '💾 Actualizar Producto';
+  document.getElementById('productoIdEdicion').value = producto.ID || '';
+  document.getElementById('referencia').value = producto.Referencia || '';
+  document.getElementById('categoria').value = producto.Categoria || '';
+  document.getElementById('descripcion').value = producto.Descripcion || '';
+  document.getElementById('formato').value = producto.Formato || '';
+  document.getElementById('presentacion').value = producto.Presentacion || '';
+  document.getElementById('cajasPorPallet').value = producto.CajasPorPallet || 0;
+  document.getElementById('pesoPorCaja').value = producto.PesoPorCaja || 0;
+  document.getElementById('undEmpaque').value = producto.UndEmpaque || 0;
+  document.getElementById('fichasPorCaja').value = producto.FichasPorCaja || 0;
+  document.getElementById('costo').value = producto.Costo || 0;
+  document.getElementById('precio1').value = producto.Precio1 || 0;
+  document.getElementById('precio2').value = producto.Precio2 || 0;
+  document.getElementById('precio3').value = producto.Precio3 || 0;
+  document.getElementById('codigoContable').value = producto.CodigoContable || '';
+  document.getElementById('cantidadEnTransito').value = producto.CantidadEnTransito || 0;
+}
+
+async function eliminarProductoTabla(productoId) {
+  const producto = productosTablaCache.find(item => item.ID === productoId);
+  const nombre = producto?.Descripcion || producto?.Referencia || productoId;
+  const confirmar = confirm(`¿Deseas eliminar el producto ${nombre}?`);
+  if (!confirmar) return;
+
+  mostrarLoading(true);
+  try {
+    await llamarAPI('eliminarProducto', { id: productoId });
+    mostrarToast('Producto eliminado correctamente', 'success');
+    listarProductos();
+  } catch (error) {
+    mostrarToast('Error al eliminar producto: ' + error.message, 'error');
   } finally {
     mostrarLoading(false);
   }
@@ -2534,7 +3368,31 @@ async function registrarMovimiento(event) {
 function mostrarFormulario(idForm) {
   const form = document.getElementById(idForm);
   if (form) {
+    if (idForm === 'formCliente') {
+      prepararFormularioCliente();
+      const title = document.getElementById('clienteModalTitle');
+      const btnGuardar = document.getElementById('btnGuardarCliente');
+      const clienteIdEdicion = document.getElementById('clienteIdEdicion');
+      if (title) title.textContent = 'Nuevo Cliente';
+      if (btnGuardar) btnGuardar.textContent = '💾 Guardar Cliente';
+      if (clienteIdEdicion) clienteIdEdicion.value = '';
+    }
+    if (idForm === 'formProducto') {
+      prepararFormularioProducto();
+    }
     form.style.display = 'flex';
+    if (idForm === 'formCliente') {
+      setTimeout(() => {
+        const primerCampo = document.getElementById('tipoPersona');
+        if (primerCampo) primerCampo.focus();
+      }, 50);
+    }
+    if (idForm === 'formProducto') {
+      setTimeout(() => {
+        const primerCampo = document.getElementById('referencia');
+        if (primerCampo) primerCampo.focus();
+      }, 50);
+    }
   }
 }
 
@@ -2583,8 +3441,21 @@ window.guardarConfiguracion = guardarConfiguracion;
 window.mostrarFormulario = mostrarFormulario;
 window.ocultarFormulario = ocultarFormulario;
 window.togglePersonaFields = togglePersonaFields;
+window.actualizarTipoIdentificacionCliente = actualizarTipoIdentificacionCliente;
+window.actualizarCiudadesCliente = actualizarCiudadesCliente;
+window.actualizarCodigoDaneCliente = actualizarCodigoDaneCliente;
 window.crearCliente = crearCliente;
+window.editarClienteTabla = editarClienteTabla;
+window.eliminarClienteTabla = eliminarClienteTabla;
+window.cambiarPaginaClientes = cambiarPaginaClientes;
+window.aplicarFiltrosClientes = aplicarFiltrosClientes;
+window.limpiarFiltrosClientes = limpiarFiltrosClientes;
 window.crearProducto = crearProducto;
+window.editarProductoTabla = editarProductoTabla;
+window.eliminarProductoTabla = eliminarProductoTabla;
+window.cambiarPaginaProductos = cambiarPaginaProductos;
+window.aplicarFiltrosProductos = aplicarFiltrosProductos;
+window.limpiarFiltrosProductos = limpiarFiltrosProductos;
 window.crearBodega = crearBodega;
 window.crearPedido = crearPedido;
 window.registrarMovimiento = registrarMovimiento;
@@ -2623,6 +3494,7 @@ window.handleLogin = handleLogin;
 window.handleLogout = handleLogout;
 window.togglePasswordVisibility = togglePasswordVisibility;
 window.mostrarRecuperarPassword = mostrarRecuperarPassword;
+window.toggleUserMenu = toggleUserMenu;
 window.toggleSidebar = toggleSidebar;
 window.closeMobileSidebar = closeMobileSidebar;
 

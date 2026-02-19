@@ -165,12 +165,68 @@ function insertRow(sheetName, obj){
   sheet.appendRow(row);
 }
 
+function findRowById(sheetName, id){
+  const sheet = getSheet(sheetName);
+  const data = sheet.getDataRange().getValues();
+  if (data.length < 2) return -1;
+
+  const headers = data[0];
+  const idIndex = headers.indexOf("ID");
+  if (idIndex === -1) return -1;
+
+  for (let row = 1; row < data.length; row++) {
+    if (String(data[row][idIndex]) === String(id)) {
+      return row + 1;
+    }
+  }
+
+  return -1;
+}
+
+function updateRowById(sheetName, id, data){
+  const sheet = getSheet(sheetName);
+  const rowNumber = findRowById(sheetName, id);
+  if (rowNumber === -1) {
+    throw new Error("Registro no encontrado");
+  }
+
+  const headers = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const current = sheet.getRange(rowNumber, 1, 1, headers.length).getValues()[0];
+  const currentObj = {};
+  headers.forEach((h, i) => currentObj[h] = current[i]);
+
+  const merged = { ...currentObj, ...data, ID: currentObj.ID };
+  const row = headers.map(h => merged[h] || "");
+
+  sheet.getRange(rowNumber, 1, 1, headers.length).setValues([row]);
+  return merged;
+}
+
+function deleteRowById(sheetName, id){
+  const sheet = getSheet(sheetName);
+  const rowNumber = findRowById(sheetName, id);
+  if (rowNumber === -1) {
+    throw new Error("Registro no encontrado");
+  }
+
+  sheet.deleteRow(rowNumber);
+  return { id: id, deleted: true };
+}
+
 // ========= CLIENTES =========
 function crearCliente(data){
   data.ID = "CLI-" + Date.now();
   data.Estado = "ACTIVO";
   insertRow(DB.CLIENTES, data);
   return data;
+}
+
+function actualizarCliente(id, data){
+  return updateRowById(DB.CLIENTES, id, data || {});
+}
+
+function eliminarCliente(id){
+  return deleteRowById(DB.CLIENTES, id);
 }
 
 // ========= PEDIDOS =========
@@ -260,6 +316,14 @@ function handleRequest(e){
         const clientes = getData("CLIENTES");
         result = clientes.find(c => c.ID === params.id || c.Identificacion === params.identificacion);
         break;
+
+      case "actualizarCliente":
+        result = actualizarCliente(params.id, params.data);
+        break;
+
+      case "eliminarCliente":
+        result = eliminarCliente(params.id);
+        break;
       
       // PRODUCTOS
       case "listarProductos":
@@ -268,6 +332,14 @@ function handleRequest(e){
       
       case "crearProducto":
         result = crearProducto(params);
+        break;
+
+      case "actualizarProducto":
+        result = actualizarProducto(params.id, params.data);
+        break;
+
+      case "eliminarProducto":
+        result = eliminarProducto(params.id);
         break;
       
       // PEDIDOS
@@ -514,6 +586,14 @@ function crearProducto(data){
   insertRow("PRODUCTOS", data);
 
   return data;
+}
+
+function actualizarProducto(id, data){
+  return updateRowById(DB.PRODUCTOS, id, data || {});
+}
+
+function eliminarProducto(id){
+  return deleteRowById(DB.PRODUCTOS, id);
 }
 
 

@@ -112,10 +112,8 @@
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="brand">
-        <span class="brand-icon">🏢</span>
         <h2>CRM v2.0</h2>
       </div>
-      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Colapsar sidebar">☰</button>
     </div>
     
     <nav class="sidebar-nav">
@@ -184,21 +182,6 @@
       </div>
     </nav>
     
-    <!-- Usuario y Logout -->
-    <div class="sidebar-footer">
-      <div class="user-profile">
-        <div class="user-avatar">👤</div>
-        <div class="user-info">
-          <div class="user-name" id="userName">Usuario</div>
-          <div class="user-role">Administrador</div>
-        </div>
-      </div>
-      <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesión">
-        <span class="logout-icon">🚪</span>
-        <span class="logout-text">Salir</span>
-      </button>
-    </div>
-    
   </aside>
 
   <!-- Overlay para móvil -->
@@ -210,18 +193,17 @@
     <!-- Header Superior -->
     <header class="top-header">
       <div class="header-left">
-        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-        <button class="btn-new">Nuevo</button>
+        <button class="mobile-menu-btn" onclick="toggleSidebar()" title="Colapsar sidebar">☰</button>
         <span id="pageTitle" class="page-title">Dashboard</span>
       </div>
       <div class="header-right">
-        <button class="icon-btn" title="Notificaciones">
-          🔔
-          <span class="badge">3</span>
-        </button>
-        <button class="icon-btn" title="Ayuda">?</button>
-        <button class="icon-btn" title="Menú">☰</button>
-        <div class="avatar">JS</div>
+        <div class="user-menu" id="userMenu">
+          <button class="avatar user-trigger" id="headerUserAvatar" onclick="toggleUserMenu(event)" title="Opciones de usuario">JS</button>
+          <div class="user-menu-dropdown" id="userMenuDropdown">
+            <div class="user-menu-name" id="headerUserName">Usuario</div>
+            <button class="user-menu-item logout" onclick="handleLogout()">Cerrar sesión</button>
+          </div>
+        </div>
         <button class="icon-btn" onclick="abrirConfiguracion()" title="Configuración">⚙</button>
         <div id="headerStatus" class="status-pill">
           <span class="status-dot"></span>
@@ -249,10 +231,6 @@
           <p class="kicker">Estado</p>
           <h2>Indicadores clave de ventas del equipo comercial</h2>
         </div>
-        <div class="title-actions">
-          <button class="icon-btn" title="Favorito">☆</button>
-          <button class="icon-btn" title="Actualizar">⟳</button>
-        </div>
       </div>
 
       <div class="mini-stats">
@@ -279,39 +257,6 @@
       </div>
 
       <div class="dashboard-grid">
-        <section class="card card-reps">
-          <div class="card-header">
-            <h3>Top asesores vs meta</h3>
-            <button class="icon-btn" title="Opciones">⋮</button>
-          </div>
-          <ul class="rep-list">
-            <li>
-              <span class="rep-avatar">DS</span>
-              <div class="rep-meta">
-                <strong>Daniela Shannon</strong>
-                <small>Enterprise</small>
-              </div>
-              <span class="rep-score">119%</span>
-            </li>
-            <li>
-              <span class="rep-avatar">CM</span>
-              <div class="rep-meta">
-                <strong>Carmela McSmith</strong>
-                <small>Mid-market</small>
-              </div>
-              <span class="rep-score">107%</span>
-            </li>
-            <li>
-              <span class="rep-avatar">ET</span>
-              <div class="rep-meta">
-                <strong>Eric Tuckerman</strong>
-                <small>SMB</small>
-              </div>
-              <span class="rep-score">106%</span>
-            </li>
-          </ul>
-        </section>
-
         <section class="card card-bars">
           <div class="card-header">
             <h3>Pronostico del trimestre por asesor</h3>
@@ -346,15 +291,6 @@
           </div>
         </section>
 
-        <section class="card card-kpi">
-          <div class="card-header">
-            <h3>Vendido por mi este mes</h3>
-            <button class="icon-btn" title="Opciones">⋮</button>
-          </div>
-          <div class="kpi-value" id="metricVentasMes">$0</div>
-          <div class="kpi-sub">Meta (ventas totales): 50K EUR (0%)</div>
-        </section>
-
         <section class="card card-activity">
           <div class="card-header">
             <h3>Actividades en ventas</h3>
@@ -363,36 +299,6 @@
           <p class="muted">La siguiente actividad esta vencida</p>
           <div class="activity-value" id="metricPedidosPendientes">0</div>
           <div class="activity-sub">Objetivo: 0</div>
-        </section>
-
-        <section class="card card-requests">
-          <div class="card-header">
-            <h3>Solicitudes abiertas</h3>
-            <button class="icon-btn" title="Opciones">⋮</button>
-          </div>
-          <ul class="request-list">
-            <li>
-              <div>
-                <strong>Tractor Inc.</strong>
-                <small>19.10.2022</small>
-              </div>
-              <span>250K EUR</span>
-            </li>
-            <li>
-              <div>
-                <strong>Green Motors</strong>
-                <small>22.10.2022</small>
-              </div>
-              <span>180K EUR</span>
-            </li>
-            <li>
-              <div>
-                <strong>North Labs</strong>
-                <small>25.10.2022</small>
-              </div>
-              <span>120K EUR</span>
-            </li>
-          </ul>
         </section>
 
         <section class="card card-donut">
@@ -408,36 +314,6 @@
           </div>
         </section>
 
-        <section class="card card-donut">
-          <div class="card-header">
-            <h3>Ventas ganadas por origen</h3>
-            <button class="icon-btn" title="Opciones">⋮</button>
-          </div>
-          <div class="donut" id="donutSource" style="--p1: 52; --p2: 28; --p3: 20;"></div>
-          <div class="legend">
-            <span><i class="dot dot-1"></i> Sitio web</span>
-            <span><i class="dot dot-2"></i> Prospeccion</span>
-            <span><i class="dot dot-3"></i> Comprado</span>
-          </div>
-        </section>
-
-        <section class="card card-forecast">
-          <div class="card-header">
-            <h3>Pronostico del trimestre</h3>
-            <button class="icon-btn" title="Opciones">⋮</button>
-          </div>
-          <div class="bar-chart compact" id="forecastQuarterChart">
-            <div class="bar" style="--value: 70;">
-              <span>Feb</span>
-            </div>
-            <div class="bar" style="--value: 48;">
-              <span>Mar</span>
-            </div>
-            <div class="bar" style="--value: 25;">
-              <span>Apr</span>
-            </div>
-          </div>
-        </section>
       </div>
     </div>
 
@@ -575,89 +451,150 @@
     <div id="view-clientes" class="view-container">
       <div class="card">
         <h2>Gestión de Clientes</h2>
+
+        <div class="clientes-toolbar">
+          <button onclick="mostrarFormulario('formCliente')" class="btn btn-primary">➕ Nuevo Cliente</button>
+          <div class="clientes-toolbar-filtros">
+            <input type="text" id="clienteSearch" placeholder="Buscar por identificación, nombre o email" oninput="aplicarFiltrosClientes()">
+            <select id="clienteFiltroTipo" onchange="aplicarFiltrosClientes()">
+              <option value="">Todos los tipos</option>
+              <option value="JURIDICA">Jurídica</option>
+              <option value="NATURAL">Natural</option>
+            </select>
+            <select id="clienteFiltroCiudad" onchange="aplicarFiltrosClientes()">
+              <option value="">Todas las ciudades</option>
+            </select>
+            <button type="button" class="btn btn-secondary" onclick="limpiarFiltrosClientes()">Limpiar</button>
+          </div>
+        </div>
         
-        <button onclick="mostrarFormulario('formCliente')" class="btn btn-primary">➕ Nuevo Cliente</button>
-        
-        <div id="formCliente" class="form-container" style="display:none;">
-          <h3>Nuevo Cliente</h3>
-          <form onsubmit="crearCliente(event)">
-            <div class="form-group">
-              <label>Tipo Persona:</label>
-              <select id="tipoPersona" required onchange="togglePersonaFields()">
-                <option value="JURIDICA">Jurídica</option>
-                <option value="NATURAL">Natural</option>
-              </select>
+        <div id="formCliente" class="modal" style="display:none;" onclick="if(event.target === this) ocultarFormulario('formCliente')">
+          <div class="modal-content modal-large">
+            <div class="modal-header">
+              <h3 id="clienteModalTitle">Nuevo Cliente</h3>
+              <button class="modal-close" onclick="ocultarFormulario('formCliente')">✖</button>
             </div>
-            
-            <div id="camposJuridica">
-              <div class="form-group">
-                <label>Razón Social:</label>
-                <input type="text" id="razonSocial" required>
+            <form class="cliente-form" onsubmit="crearCliente(event)">
+              <input type="hidden" id="clienteIdEdicion">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Tipo Persona:</label>
+                  <select id="tipoPersona" required onchange="togglePersonaFields()" tabindex="1">
+                    <option value="JURIDICA">Jurídica</option>
+                    <option value="NATURAL">Natural</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Tipo Identificación:</label>
+                  <select id="tipoIdentificacion" required tabindex="2" onchange="actualizarTipoIdentificacionCliente()">
+                    <option value="NIT">NIT</option>
+                    <option value="CC">Cédula de Ciudadanía</option>
+                    <option value="CE">Cédula de Extranjería</option>
+                    <option value="PAS">Pasaporte</option>
+                  </select>
+                </div>
               </div>
-            </div>
-            
-            <div id="camposNatural" style="display:none;">
-              <div class="form-group">
-                <label>Nombres:</label>
-                <input type="text" id="nombres">
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Identificación:</label>
+                  <input type="text" id="identificacion" required tabindex="3" autocomplete="off">
+                </div>
+                <div class="form-group" id="grupoDvCliente">
+                  <label>DV (opcional):</label>
+                  <input type="text" id="dvCliente" maxlength="1" tabindex="4" autocomplete="off" placeholder="0-9 o K">
+                </div>
+                <div class="form-group">
+                  <label>Asesor:</label>
+                  <select id="asesor" required tabindex="5">
+                    <option value="">Seleccione un asesor</option>
+                  </select>
+                </div>
               </div>
-              <div class="form-group">
-                <label>Apellidos:</label>
-                <input type="text" id="apellidos">
+
+              <div id="camposJuridica">
+                <div class="form-group">
+                  <label>Razón Social:</label>
+                  <input type="text" id="razonSocial" required tabindex="6">
+                </div>
               </div>
-            </div>
-            
-            <div class="form-group">
-              <label>Identificación:</label>
-              <input type="text" id="identificacion" required>
-            </div>
-            
-            <div class="form-group">
-              <label>Teléfono:</label>
-              <input type="text" id="telefono1">
-            </div>
-            
-            <div class="form-group">
-              <label>Email:</label>
-              <input type="email" id="correoElectronico">
-            </div>
-            
-            <div class="form-group">
-              <label>Dirección:</label>
-              <input type="text" id="direccionEntrega">
-            </div>
-            
-            <div class="form-group">
-              <label>Ciudad:</label>
-              <input type="text" id="ciudad">
-            </div>
-            
-            <div class="form-group">
-              <label>Asesor:</label>
-              <input type="text" id="asesor">
-            </div>
-            
-            <button type="submit" class="btn btn-success">💾 Guardar Cliente</button>
-            <button type="button" onclick="ocultarFormulario('formCliente')" class="btn btn-secondary">❌ Cancelar</button>
-          </form>
+
+              <div id="camposNatural" style="display:none;">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Nombres:</label>
+                    <input type="text" id="nombres" tabindex="6">
+                  </div>
+                  <div class="form-group">
+                    <label>Apellidos:</label>
+                    <input type="text" id="apellidos" tabindex="7">
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Teléfono:</label>
+                  <input type="text" id="telefono1" tabindex="8">
+                </div>
+                <div class="form-group">
+                  <label>Email:</label>
+                  <input type="email" id="correoElectronico" tabindex="9">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Dirección:</label>
+                <input type="text" id="direccionEntrega" tabindex="10">
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Departamento:</label>
+                  <select id="departamento" required onchange="actualizarCiudadesCliente()" tabindex="11">
+                    <option value="">Seleccione departamento</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Ciudad:</label>
+                  <select id="ciudad" required onchange="actualizarCodigoDaneCliente()" disabled tabindex="12">
+                    <option value="">Seleccione ciudad</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Código DANE:</label>
+                  <input type="text" id="codigoDaneCliente" readonly placeholder="Se completa automáticamente" tabindex="13">
+                </div>
+              </div>
+
+              <div class="modal-footer">
+                <button type="button" onclick="ocultarFormulario('formCliente')" class="btn btn-secondary" tabindex="15">Cancelar</button>
+                <button type="submit" id="btnGuardarCliente" class="btn btn-success" tabindex="14">💾 Guardar Cliente</button>
+              </div>
+            </form>
+          </div>
         </div>
         
         <div id="listaClientes" class="table-container">
           <table id="tablaClientes">
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Identificación</th>
                 <th>Nombre/Razón Social</th>
                 <th>Teléfono</th>
                 <th>Email</th>
                 <th>Ciudad</th>
-                <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
+
+        <div id="clientesPagination" class="table-pagination"></div>
       </div>
     </div>
 
@@ -665,46 +602,137 @@
     <div id="view-productos" class="view-container">
       <div class="card">
         <h2>Catálogo de Productos</h2>
-        <button onclick="mostrarFormulario('formProducto')" class="btn btn-primary">➕ Nuevo Producto</button>
-        
-        <div id="formProducto" class="form-container" style="display:none;">
-          <h3>Nuevo Producto</h3>
-          <form onsubmit="crearProducto(event)">
-            <div class="form-group">
-              <label>Referencia:</label>
-              <input type="text" id="referencia" required>
+        <div class="productos-toolbar">
+          <button onclick="mostrarFormulario('formProducto')" class="btn btn-primary">➕ Nuevo Producto</button>
+          <div class="productos-toolbar-filtros">
+            <input type="text" id="productoSearch" placeholder="Buscar por referencia o descripción" oninput="aplicarFiltrosProductos()">
+            <select id="productoFiltroCategoria" onchange="aplicarFiltrosProductos()">
+              <option value="">Todas las categorías</option>
+            </select>
+            <button type="button" class="btn btn-secondary" onclick="limpiarFiltrosProductos()">Limpiar</button>
+          </div>
+        </div>
+
+        <div id="formProducto" class="modal" style="display:none;" onclick="if(event.target === this) ocultarFormulario('formProducto')">
+          <div class="modal-content modal-large">
+            <div class="modal-header">
+              <h3 id="productoModalTitle">Nuevo Producto</h3>
+              <button class="modal-close" onclick="ocultarFormulario('formProducto')">✖</button>
             </div>
-            <div class="form-group">
-              <label>Descripción:</label>
-              <input type="text" id="descripcion" required>
-            </div>
-            <div class="form-group">
-              <label>Categoría:</label>
-              <input type="text" id="categoria">
-            </div>
-            <div class="form-group">
-              <label>Presentación:</label>
-              <input type="text" id="presentacion">
-            </div>
-            <button type="submit" class="btn btn-success">💾 Guardar Producto</button>
-            <button type="button" onclick="ocultarFormulario('formProducto')" class="btn btn-secondary">❌ Cancelar</button>
-          </form>
+            <form class="producto-form" onsubmit="crearProducto(event)">
+              <input type="hidden" id="productoIdEdicion">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Referencia:</label>
+                  <input type="text" id="referencia" required>
+                </div>
+                <div class="form-group">
+                  <label>Categoría:</label>
+                  <input type="text" id="categoria" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Descripción:</label>
+                <input type="text" id="descripcion" required>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Formato:</label>
+                  <input type="text" id="formato">
+                </div>
+                <div class="form-group">
+                  <label>Presentación:</label>
+                  <input type="text" id="presentacion">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Cajas por pallet:</label>
+                  <input type="number" id="cajasPorPallet" min="0" step="1">
+                </div>
+                <div class="form-group">
+                  <label>Peso por caja:</label>
+                  <input type="number" id="pesoPorCaja" min="0" step="0.01">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Unidades por empaque:</label>
+                  <input type="number" id="undEmpaque" min="0" step="1">
+                </div>
+                <div class="form-group">
+                  <label>Fichas por caja:</label>
+                  <input type="number" id="fichasPorCaja" min="0" step="1">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Costo:</label>
+                  <input type="number" id="costo" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>Precio 1:</label>
+                  <input type="number" id="precio1" min="0" step="0.01">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Precio 2:</label>
+                  <input type="number" id="precio2" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                  <label>Precio 3:</label>
+                  <input type="number" id="precio3" min="0" step="0.01">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Código contable:</label>
+                  <input type="text" id="codigoContable">
+                </div>
+                <div class="form-group">
+                  <label>Cantidad en tránsito:</label>
+                  <input type="number" id="cantidadEnTransito" min="0" step="1" value="0">
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Estado:</label>
+                  <input type="text" value="ACTIVO" disabled>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" onclick="ocultarFormulario('formProducto')" class="btn btn-secondary">Cancelar</button>
+                <button type="submit" id="btnGuardarProducto" class="btn btn-success">💾 Guardar Producto</button>
+              </div>
+            </form>
+          </div>
         </div>
         
         <div id="listaProductos" class="table-container">
           <table id="tablaProductos">
             <thead>
               <tr>
-                <th>ID</th>
                 <th>Referencia</th>
                 <th>Descripción</th>
                 <th>Categoría</th>
-                <th>Estado</th>
+                <th>Presentación</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody></tbody>
           </table>
         </div>
+
+        <div id="productosPagination" class="table-pagination"></div>
       </div>
     </div>
 
