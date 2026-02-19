@@ -1,0 +1,1802 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CRM Empresarial v2.0 - Pipeline de Ventas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="sidebar-layout">
+
+  <!-- PANTALLA DE LOGIN -->
+  <div id="loginScreen" class="login-screen">
+    <div class="login-container">
+      <div class="login-left">
+        <div class="login-brand">
+          <div class="login-logo">🏢</div>
+          <h1>CRM Empresarial</h1>
+          <p class="login-version">Versión 2.0</p>
+        </div>
+        <div class="login-features">
+          <div class="feature-item">
+            <span class="feature-icon">📊</span>
+            <div>
+              <h3>Dashboard en Tiempo Real</h3>
+              <p>Visualiza tus métricas de ventas al instante</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">💼</span>
+            <div>
+              <h3>Gestión Completa</h3>
+              <p>Pedidos, facturas y recaudos centralizados</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">📱</span>
+            <div>
+              <h3>100% Responsivo</h3>
+              <p>Accede desde cualquier dispositivo</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="login-right">
+        <div class="login-box">
+          <h2>Iniciar Sesión</h2>
+          <p class="login-subtitle">Bienvenido de nuevo</p>
+          
+          <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label for="loginUsuario">
+                <span class="input-icon">👤</span>
+                Usuario
+              </label>
+              <input 
+                type="text" 
+                id="loginUsuario" 
+                class="login-input" 
+                placeholder="Ingresa tu usuario"
+                autocomplete="username"
+                required>
+            </div>
+            
+            <div class="form-group">
+              <label for="loginPassword">
+                <span class="input-icon">🔒</span>
+                Contraseña
+              </label>
+              <div class="password-input-container">
+                <input 
+                  type="password" 
+                  id="loginPassword" 
+                  class="login-input" 
+                  placeholder="Ingresa tu contraseña"
+                  autocomplete="current-password"
+                  required>
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">
+                  👁️
+                </button>
+              </div>
+            </div>
+            
+            <div class="form-group form-options">
+              <label class="checkbox-label">
+                <input type="checkbox" id="rememberMe">
+                <span>Recordarme</span>
+              </label>
+              <a href="#" class="forgot-password" onclick="mostrarRecuperarPassword(event)">¿Olvidaste tu contraseña?</a>
+            </div>
+            
+            <button type="submit" class="btn-login">
+              Iniciar Sesión
+            </button>
+            
+            <div class="login-demo">
+              <p>Usuario demo: <strong>admin</strong> | Contraseña: <strong>admin</strong></p>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- APLICACIÓN PRINCIPAL (OCULTA HASTA LOGIN) -->
+  <div id="appContainer" style="display: none; width: 100%;">
+  
+  <!-- Sidebar Lateral -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <span class="brand-icon">🏢</span>
+        <h2>CRM v2.0</h2>
+      </div>
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Colapsar sidebar">☰</button>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" onclick="cambiarVista('dashboard')" data-view="dashboard">
+        <span class="nav-icon">📊</span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+      
+      <a href="#" class="nav-item" onclick="cambiarVista('pipeline')" data-view="pipeline">
+        <span class="nav-icon">🔄</span>
+        <span class="nav-text">Segmentación Ventas</span>
+      </a>
+      
+      <!-- Menú desplegable Ventas -->
+      <div class="nav-group">
+        <button class="nav-group-toggle" onclick="toggleNavGroup(this)">
+          <span class="nav-icon">💼</span>
+          <span class="nav-text">Ventas</span>
+          <span class="nav-arrow">▼</span>
+        </button>
+        <div class="nav-group-items">
+          <a href="#" class="nav-item nav-subitem" onclick="cambiarVista('clientes')" data-view="clientes">
+            <span class="nav-icon">👥</span>
+            <span class="nav-text">Clientes</span>
+          </a>
+          <a href="#" class="nav-item nav-subitem" onclick="cambiarVista('pedidos')" data-view="pedidos">
+            <span class="nav-icon">📋</span>
+            <span class="nav-text">Pedidos</span>
+          </a>
+          <a href="#" class="nav-item nav-subitem" onclick="cambiarVista('facturas')" data-view="facturas">
+            <span class="nav-icon">💰</span>
+            <span class="nav-text">Facturas</span>
+          </a>
+          <a href="#" class="nav-item nav-subitem" onclick="cambiarVista('recaudos')" data-view="recaudos">
+            <span class="nav-icon">💳</span>
+            <span class="nav-text">Recaudos</span>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Menú desplegable Kardex -->
+      <div class="nav-group">
+        <button class="nav-group-toggle" onclick="toggleNavGroup(this)">
+          <span class="nav-icon">📊</span>
+          <span class="nav-text">Kardex</span>
+          <span class="nav-arrow">▼</span>
+        </button>
+        <div class="nav-group-items">
+          <a href="#" class="nav-item nav-subitem" onclick="cambiarVista('productos')" data-view="productos">
+            <span class="nav-icon">📦</span>
+            <span class="nav-text">Productos</span>
+          </a>
+          <a href="#" class="nav-item nav-subitem" onclick="cambiarVista('bodegas')" data-view="bodegas">
+            <span class="nav-icon">🏭</span>
+            <span class="nav-text">Bodegas</span>
+          </a>
+          <a href="#" class="nav-item nav-subitem" onclick="cambiarVista('inventario')" data-view="inventario">
+            <span class="nav-icon">🏪</span>
+            <span class="nav-text">Inventario</span>
+          </a>
+          <a href="#" class="nav-item nav-subitem" onclick="cambiarVista('despachos')" data-view="despachos">
+            <span class="nav-icon">🚚</span>
+            <span class="nav-text">Despachos</span>
+          </a>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- Usuario y Logout -->
+    <div class="sidebar-footer">
+      <div class="user-profile">
+        <div class="user-avatar">👤</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Usuario</div>
+          <div class="user-role">Administrador</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()" title="Cerrar sesión">
+        <span class="logout-icon">🚪</span>
+        <span class="logout-text">Salir</span>
+      </button>
+    </div>
+    
+  </aside>
+
+  <!-- Overlay para móvil -->
+  <div class="mobile-overlay" id="mobileOverlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- Contenido Principal -->
+  <main class="main-content">
+    
+    <!-- Header Superior -->
+    <header class="top-header">
+      <div class="header-left">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <button class="btn-new">Nuevo</button>
+        <span id="pageTitle" class="page-title">Dashboard</span>
+      </div>
+      <div class="header-right">
+        <button class="icon-btn" title="Notificaciones">
+          🔔
+          <span class="badge">3</span>
+        </button>
+        <button class="icon-btn" title="Ayuda">?</button>
+        <button class="icon-btn" title="Menú">☰</button>
+        <div class="avatar">JS</div>
+        <button class="icon-btn" onclick="abrirConfiguracion()" title="Configuración">⚙</button>
+        <div id="headerStatus" class="status-pill">
+          <span class="status-dot"></span>
+          <span id="statusText">Configurando...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Configuración API -->
+    <div class="config-banner hidden" id="configBanner">
+      <div class="config-content">
+        <h3>⚙️ Configuración Requerida</h3>
+        <p>Ingresa la URL de tu Google Apps Script para comenzar</p>
+        <div class="config-input-group">
+          <input type="text" id="apiUrl" placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec">
+          <button onclick="guardarConfiguracion()" class="btn btn-primary">💾 Conectar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: DASHBOARD -->
+    <div id="view-dashboard" class="view-container active">
+      <div class="dashboard-header">
+        <div>
+          <p class="kicker">Estado</p>
+          <h2>Indicadores clave de ventas del equipo comercial</h2>
+        </div>
+        <div class="title-actions">
+          <button class="icon-btn" title="Favorito">☆</button>
+          <button class="icon-btn" title="Actualizar">⟳</button>
+        </div>
+      </div>
+
+      <div class="mini-stats">
+        <div class="mini-stat">
+          <span>Ventas totales</span>
+          <strong id="metricTotalVentas">$0</strong>
+        </div>
+        <div class="mini-stat">
+          <span>Pedidos entregados</span>
+          <strong id="metricEntregados">0</strong>
+        </div>
+        <div class="mini-stat">
+          <span>Clientes activos</span>
+          <strong id="totalClientes">0</strong>
+        </div>
+        <div class="mini-stat">
+          <span>Productos</span>
+          <strong id="totalProductos">0</strong>
+        </div>
+        <div class="mini-stat">
+          <span>Facturas pendientes</span>
+          <strong id="facturasPendientes">0</strong>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <section class="card card-reps">
+          <div class="card-header">
+            <h3>Top asesores vs meta</h3>
+            <button class="icon-btn" title="Opciones">⋮</button>
+          </div>
+          <ul class="rep-list">
+            <li>
+              <span class="rep-avatar">DS</span>
+              <div class="rep-meta">
+                <strong>Daniela Shannon</strong>
+                <small>Enterprise</small>
+              </div>
+              <span class="rep-score">119%</span>
+            </li>
+            <li>
+              <span class="rep-avatar">CM</span>
+              <div class="rep-meta">
+                <strong>Carmela McSmith</strong>
+                <small>Mid-market</small>
+              </div>
+              <span class="rep-score">107%</span>
+            </li>
+            <li>
+              <span class="rep-avatar">ET</span>
+              <div class="rep-meta">
+                <strong>Eric Tuckerman</strong>
+                <small>SMB</small>
+              </div>
+              <span class="rep-score">106%</span>
+            </li>
+          </ul>
+        </section>
+
+        <section class="card card-bars">
+          <div class="card-header">
+            <h3>Pronostico del trimestre por asesor</h3>
+            <button class="icon-btn" title="Opciones">⋮</button>
+          </div>
+          <div class="bar-chart" id="forecastOwnersChart">
+            <div class="bar" style="--value: 82;">
+              <span>Jeffrey</span>
+            </div>
+            <div class="bar" style="--value: 65;">
+              <span>Daniela</span>
+            </div>
+            <div class="bar" style="--value: 48;">
+              <span>Raphael</span>
+            </div>
+            <div class="bar" style="--value: 32;">
+              <span>John</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="card card-gauge">
+          <div class="card-header">
+            <h3>Meta de ventas del mes</h3>
+            <button class="icon-btn" title="Opciones">⋮</button>
+          </div>
+          <div class="gauge" id="gaugeVentas" style="--value: 36;">
+            <div class="gauge-arc"></div>
+            <div class="gauge-needle"></div>
+            <div class="gauge-value" id="gaugeValue">36%</div>
+            <div class="gauge-caption">Pronostico del mes - ponderado</div>
+          </div>
+        </section>
+
+        <section class="card card-kpi">
+          <div class="card-header">
+            <h3>Vendido por mi este mes</h3>
+            <button class="icon-btn" title="Opciones">⋮</button>
+          </div>
+          <div class="kpi-value" id="metricVentasMes">$0</div>
+          <div class="kpi-sub">Meta (ventas totales): 50K EUR (0%)</div>
+        </section>
+
+        <section class="card card-activity">
+          <div class="card-header">
+            <h3>Actividades en ventas</h3>
+            <button class="icon-btn" title="Opciones">⋮</button>
+          </div>
+          <p class="muted">La siguiente actividad esta vencida</p>
+          <div class="activity-value" id="metricPedidosPendientes">0</div>
+          <div class="activity-sub">Objetivo: 0</div>
+        </section>
+
+        <section class="card card-requests">
+          <div class="card-header">
+            <h3>Solicitudes abiertas</h3>
+            <button class="icon-btn" title="Opciones">⋮</button>
+          </div>
+          <ul class="request-list">
+            <li>
+              <div>
+                <strong>Tractor Inc.</strong>
+                <small>19.10.2022</small>
+              </div>
+              <span>250K EUR</span>
+            </li>
+            <li>
+              <div>
+                <strong>Green Motors</strong>
+                <small>22.10.2022</small>
+              </div>
+              <span>180K EUR</span>
+            </li>
+            <li>
+              <div>
+                <strong>North Labs</strong>
+                <small>25.10.2022</small>
+              </div>
+              <span>120K EUR</span>
+            </li>
+          </ul>
+        </section>
+
+        <section class="card card-donut">
+          <div class="card-header">
+            <h3>Ventas ganadas por motivo</h3>
+            <button class="icon-btn" title="Opciones">⋮</button>
+          </div>
+          <div class="donut" id="donutReason" style="--p1: 62; --p2: 20; --p3: 18;"></div>
+          <div class="legend">
+            <span><i class="dot dot-1"></i> Precio</span>
+            <span><i class="dot dot-2"></i> Solucion</span>
+            <span><i class="dot dot-3"></i> Desempeno</span>
+          </div>
+        </section>
+
+        <section class="card card-donut">
+          <div class="card-header">
+            <h3>Ventas ganadas por origen</h3>
+            <button class="icon-btn" title="Opciones">⋮</button>
+          </div>
+          <div class="donut" id="donutSource" style="--p1: 52; --p2: 28; --p3: 20;"></div>
+          <div class="legend">
+            <span><i class="dot dot-1"></i> Sitio web</span>
+            <span><i class="dot dot-2"></i> Prospeccion</span>
+            <span><i class="dot dot-3"></i> Comprado</span>
+          </div>
+        </section>
+
+        <section class="card card-forecast">
+          <div class="card-header">
+            <h3>Pronostico del trimestre</h3>
+            <button class="icon-btn" title="Opciones">⋮</button>
+          </div>
+          <div class="bar-chart compact" id="forecastQuarterChart">
+            <div class="bar" style="--value: 70;">
+              <span>Feb</span>
+            </div>
+            <div class="bar" style="--value: 48;">
+              <span>Mar</span>
+            </div>
+            <div class="bar" style="--value: 25;">
+              <span>Apr</span>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- VISTA: PIPELINE DE VENTAS -->
+    <!-- VISTA: PIPELINE DE VENTAS -->
+    <div id="view-pipeline" class="view-container">
+      <div class="pipeline-header">
+        <h2>🔄 Segmentación de Ventas</h2>
+        <button onclick="mostrarFormulario('formNuevoPedidoPipeline')" class="btn btn-primary">➕ Nuevo Pedido</button>
+      </div>
+
+      <!-- Formulario Nuevo Pedido -->
+      <div id="formNuevoPedidoPipeline" class="modal" style="display:none;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Nuevo Pedido</h3>
+            <button class="modal-close" onclick="ocultarFormulario('formNuevoPedidoPipeline')">✖</button>
+          </div>
+          <form onsubmit="crearPedidoPipeline(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Cliente ID:</label>
+                <input type="text" id="pedidoPipelineClienteID" required>
+              </div>
+              <div class="form-group">
+                <label>Asesor:</label>
+                <input type="text" id="pedidoPipelineAsesor" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Prioridad:</label>
+                <select id="pedidoPipelinePrioridad">
+                  <option value="BAJA">Baja</option>
+                  <option value="MEDIA" selected>Media</option>
+                  <option value="ALTA">Alta</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Subtotal:</label>
+                <input type="number" id="pedidoPipelineSubtotal" value="0">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Notas:</label>
+              <textarea id="pedidoPipelineNotas" rows="3"></textarea>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success">💾 Crear Pedido</button>
+              <button type="button" onclick="ocultarFormulario('formNuevoPedidoPipeline')" class="btn btn-secondary">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Kanban Board -->
+      <div class="kanban-board">
+        
+        <!-- Columna: PEDIDO -->
+        <div class="kanban-column">
+          <div class="kanban-header pedido">
+            <span class="kanban-icon">📝</span>
+            <h3>Pedido Tomado</h3>
+            <span class="kanban-count" id="countPedido">0</span>
+          </div>
+          <div class="kanban-cards" id="kanbanPedido" data-estado="PEDIDO">
+            <!-- Cards dinámicos -->
+          </div>
+        </div>
+
+        <!-- Columna: ALISTAMIENTO -->
+        <div class="kanban-column">
+          <div class="kanban-header alistamiento">
+            <span class="kanban-icon">📦</span>
+            <h3>Alistamiento</h3>
+            <span class="kanban-count" id="countAlistamiento">0</span>
+          </div>
+          <div class="kanban-cards" id="kanbanAlistamiento" data-estado="ALISTAMIENTO">
+            <!-- Cards dinámicos -->
+          </div>
+        </div>
+
+        <!-- Columna: FACTURADO -->
+        <div class="kanban-column">
+          <div class="kanban-header facturado">
+            <span class="kanban-icon">🧾</span>
+            <h3>Facturado</h3>
+            <span class="kanban-count" id="countFacturado">0</span>
+          </div>
+          <div class="kanban-cards" id="kanbanFacturado" data-estado="FACTURADO">
+            <!-- Cards dinámicos -->
+          </div>
+        </div>
+
+        <!-- Columna: ENTREGADO -->
+        <div class="kanban-column">
+          <div class="kanban-header entregado">
+            <span class="kanban-icon">🚚</span>
+            <h3>Entregado</h3>
+            <span class="kanban-count" id="countEntregado">0</span>
+          </div>
+          <div class="kanban-cards" id="kanbanEntregado" data-estado="ENTREGADO">
+            <!-- Cards dinámicos -->
+          </div>
+        </div>
+
+        <!-- Columna: SEGUIMIENTO -->
+        <div class="kanban-column">
+          <div class="kanban-header seguimiento">
+            <span class="kanban-icon">👁️</span>
+            <h3>Seguimiento</h3>
+            <span class="kanban-count" id="countSeguimiento">0</span>
+          </div>
+          <div class="kanban-cards" id="kanbanSeguimiento" data-estado="SEGUIMIENTO">
+            <!-- Cards dinámicos -->
+          </div>
+        </div>
+
+        <!-- Columna: RECAUDADO -->
+        <div class="kanban-column">
+          <div class="kanban-header recaudado">
+            <span class="kanban-icon">💵</span>
+            <h3>Recaudado</h3>
+            <span class="kanban-count" id="countRecaudado">0</span>
+          </div>
+          <div class="kanban-cards" id="kanbanRecaudado" data-estado="RECAUDADO">
+            <!-- Cards dinámicos -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VISTA: CLIENTES -->
+    <div id="view-clientes" class="view-container">
+      <div class="card">
+        <h2>Gestión de Clientes</h2>
+        
+        <button onclick="mostrarFormulario('formCliente')" class="btn btn-primary">➕ Nuevo Cliente</button>
+        
+        <div id="formCliente" class="form-container" style="display:none;">
+          <h3>Nuevo Cliente</h3>
+          <form onsubmit="crearCliente(event)">
+            <div class="form-group">
+              <label>Tipo Persona:</label>
+              <select id="tipoPersona" required onchange="togglePersonaFields()">
+                <option value="JURIDICA">Jurídica</option>
+                <option value="NATURAL">Natural</option>
+              </select>
+            </div>
+            
+            <div id="camposJuridica">
+              <div class="form-group">
+                <label>Razón Social:</label>
+                <input type="text" id="razonSocial" required>
+              </div>
+            </div>
+            
+            <div id="camposNatural" style="display:none;">
+              <div class="form-group">
+                <label>Nombres:</label>
+                <input type="text" id="nombres">
+              </div>
+              <div class="form-group">
+                <label>Apellidos:</label>
+                <input type="text" id="apellidos">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Identificación:</label>
+              <input type="text" id="identificacion" required>
+            </div>
+            
+            <div class="form-group">
+              <label>Teléfono:</label>
+              <input type="text" id="telefono1">
+            </div>
+            
+            <div class="form-group">
+              <label>Email:</label>
+              <input type="email" id="correoElectronico">
+            </div>
+            
+            <div class="form-group">
+              <label>Dirección:</label>
+              <input type="text" id="direccionEntrega">
+            </div>
+            
+            <div class="form-group">
+              <label>Ciudad:</label>
+              <input type="text" id="ciudad">
+            </div>
+            
+            <div class="form-group">
+              <label>Asesor:</label>
+              <input type="text" id="asesor">
+            </div>
+            
+            <button type="submit" class="btn btn-success">💾 Guardar Cliente</button>
+            <button type="button" onclick="ocultarFormulario('formCliente')" class="btn btn-secondary">❌ Cancelar</button>
+          </form>
+        </div>
+        
+        <div id="listaClientes" class="table-container">
+          <table id="tablaClientes">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Identificación</th>
+                <th>Nombre/Razón Social</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Ciudad</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: PRODUCTOS -->
+    <div id="view-productos" class="view-container">
+      <div class="card">
+        <h2>Catálogo de Productos</h2>
+        <button onclick="mostrarFormulario('formProducto')" class="btn btn-primary">➕ Nuevo Producto</button>
+        
+        <div id="formProducto" class="form-container" style="display:none;">
+          <h3>Nuevo Producto</h3>
+          <form onsubmit="crearProducto(event)">
+            <div class="form-group">
+              <label>Referencia:</label>
+              <input type="text" id="referencia" required>
+            </div>
+            <div class="form-group">
+              <label>Descripción:</label>
+              <input type="text" id="descripcion" required>
+            </div>
+            <div class="form-group">
+              <label>Categoría:</label>
+              <input type="text" id="categoria">
+            </div>
+            <div class="form-group">
+              <label>Presentación:</label>
+              <input type="text" id="presentacion">
+            </div>
+            <button type="submit" class="btn btn-success">💾 Guardar Producto</button>
+            <button type="button" onclick="ocultarFormulario('formProducto')" class="btn btn-secondary">❌ Cancelar</button>
+          </form>
+        </div>
+        
+        <div id="listaProductos" class="table-container">
+          <table id="tablaProductos">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Referencia</th>
+                <th>Descripción</th>
+                <th>Categoría</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: BODEGAS -->
+    <div id="view-bodegas" class="view-container">
+      <div class="card">
+        <h2>Gestión de Bodegas</h2>
+        <button onclick="mostrarFormulario('formBodega')" class="btn btn-primary">➕ Nueva Bodega</button>
+
+        <div id="formBodega" class="form-container" style="display:none;">
+          <h3>Nueva Bodega</h3>
+          <form onsubmit="crearBodega(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nombre:</label>
+                <input type="text" id="bodegaNombre" required>
+              </div>
+              <div class="form-group">
+                <label>Ciudad:</label>
+                <input type="text" id="bodegaCiudad" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Dirección:</label>
+                <input type="text" id="bodegaDireccion">
+              </div>
+              <div class="form-group">
+                <label>Responsable:</label>
+                <input type="text" id="bodegaResponsable">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success">💾 Guardar Bodega</button>
+            <button type="button" onclick="ocultarFormulario('formBodega')" class="btn btn-secondary">❌ Cancelar</button>
+          </form>
+        </div>
+
+        <div id="listaBodegas" class="table-container">
+          <table id="tablaBodegas">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Ciudad</th>
+                <th>Responsable</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: DESPACHOS -->
+    <div id="view-despachos" class="view-container">
+      <div class="card">
+        <h2>Gestión de Despachos</h2>
+        <button onclick="mostrarFormulario('formDespacho')" class="btn btn-primary">➕ Nuevo Despacho</button>
+        
+        <div id="formDespacho" class="form-container" style="display:none;">
+          <h3>Nuevo Despacho</h3>
+          <form onsubmit="crearDespacho(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Pedido:</label>
+                <select id="despacho_pedidoID" required>
+                  <option value="">Seleccione un pedido</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Conductor:</label>
+                <select id="despacho_conductorID" required>
+                  <option value="">Seleccione un conductor</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Fecha Despacho:</label>
+                <input type="date" id="despacho_fecha" required>
+              </div>
+              <div class="form-group">
+                <label>Estado:</label>
+                <select id="despacho_estado" required>
+                  <option value="PROGRAMADO">Programado</option>
+                  <option value="EN_RUTA">En Ruta</option>
+                  <option value="ENTREGADO">Entregado</option>
+                  <option value="DEVUELTO">Devuelto</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Observaciones:</label>
+              <textarea id="despacho_observaciones" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">💾 Guardar Despacho</button>
+            <button type="button" onclick="ocultarFormulario('formDespacho')" class="btn btn-secondary">❌ Cancelar</button>
+          </form>
+        </div>
+
+        <div id="listaDespachos" class="table-container">
+          <table id="tablaDespachos">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Pedido</th>
+                <th>Conductor</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Observaciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: PEDIDOS -->
+    <div id="view-pedidos" class="view-container">
+      <div class="card">
+        <h2>Gestión de Pedidos</h2>
+        <button onclick="iniciarNuevoPedido()" class="btn btn-primary">➕ Nuevo Pedido</button>
+        
+        <div id="listaPedidos" class="table-container">
+          <table id="tablaPedidos">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Asesor</th>
+                <th>Estado</th>
+                <th>Total</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: NUEVO PEDIDO -->
+    <div id="modalPedido" class="modal-overlay" style="display:none;">
+      <div class="modal-container modal-xl">
+        <div class="modal-header">
+          <h3>📋 Nuevo Pedido</h3>
+          <button class="modal-close" onclick="cancelarPedido()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+          <!-- SECCIÓN 1: DATOS DEL CLIENTE -->
+          <div class="pedido-seccion">
+            <h4>👤 Información del Cliente</h4>
+            <div class="form-row">
+              <div class="form-group" style="flex: 2;">
+                <label>Buscar Cliente por Nombre o NIT:</label>
+                <div class="search-input-group">
+                  <input type="text" 
+                         id="buscarCliente" 
+                         placeholder="Escribe nombre o identificación..."
+                         autocomplete="off"
+                         oninput="buscarClienteEnTiempoReal(this.value)">
+                  <div id="resultadosCliente" class="search-results"></div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Cliente Seleccionado:</label>
+                <input type="text" id="clienteNombre" readonly class="readonly-input">
+                <input type="hidden" id="pedidoClienteID">
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>NIT/CC:</label>
+                <input type="text" id="clienteIdentificacion" readonly class="readonly-input">
+              </div>
+              <div class="form-group">
+                <label>Ciudad:</label>
+                <input type="text" id="clienteCiudad" readonly class="readonly-input">
+              </div>
+              <div class="form-group">
+                <label>Teléfono:</label>
+                <input type="text" id="clienteTelefono" readonly class="readonly-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 2: INFORMACIÓN DEL PEDIDO -->
+          <div class="pedido-seccion">
+            <h4>📝 Información del Pedido</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Asesor Comercial:</label>
+                <select id="pedidoAsesor" required>
+                  <option value="">Seleccione un asesor</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Tipo de Pago:</label>
+                <select id="pedidoTipoPago" required>
+                  <option value="CONTADO">Contado</option>
+                  <option value="CREDITO">Crédito</option>
+                  <option value="ANTICIPADO">Anticipado</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Prioridad:</label>
+                <select id="pedidoPrioridad">
+                  <option value="BAJA">Baja</option>
+                  <option value="MEDIA" selected>Media</option>
+                  <option value="ALTA">Alta</option>
+                  <option value="URGENTE">Urgente</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Notas del Pedido:</label>
+              <textarea id="pedidoNotas" rows="2" placeholder="Observaciones especiales del cliente..."></textarea>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 3: PRODUCTOS -->
+          <div class="pedido-seccion">
+            <h4>📦 Productos del Pedido</h4>
+            
+            <div class="agregar-producto-form">
+              <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                  <label>Buscar Producto por Referencia o Descripción:</label>
+                  <div class="search-input-group">
+                    <input type="text" 
+                           id="buscarProducto" 
+                           placeholder="Escribe referencia o descripción..."
+                           autocomplete="off"
+                           oninput="buscarProductoEnTiempoReal(this.value)">
+                    <div id="resultadosProducto" class="search-results"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INFORMACIÓN DEL PRODUCTO SELECCIONADO -->
+              <div id="infoProductoSeleccionado" class="producto-info-panel" style="display: none;">
+                <h5 style="margin-bottom: 12px; color: #0f766e;">📋 Información del Producto</h5>
+                <div class="form-row" style="margin-bottom: 8px;">
+                  <div class="form-group">
+                    <label>Referencia:</label>
+                    <input type="text" id="infoReferencia" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group" style="flex: 2;">
+                    <label>Descripción:</label>
+                    <input type="text" id="infoDescripcion" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Formato:</label>
+                    <input type="text" id="infoFormato" readonly class="readonly-input">
+                  </div>
+                </div>
+                <div class="form-row" style="margin-bottom: 8px;">
+                  <div class="form-group">
+                    <label>Presentación:</label>
+                    <input type="text" id="infoPresentacion" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Und/Empaque:</label>
+                    <input type="text" id="infoUndEmpaque" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Fichas/Caja:</label>
+                    <input type="text" id="infoFichasPorCaja" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Cajas/Pallet:</label>
+                    <input type="text" id="infoCajasPorPallet" readonly class="readonly-input">
+                  </div>
+                </div>
+                <div class="form-row" style="margin-bottom: 8px;">
+                  <div class="form-group">
+                    <label>Peso/Caja:</label>
+                    <input type="text" id="infoPesoPorCaja" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Precio 1:</label>
+                    <input type="text" id="infoPrecio1" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Precio 2:</label>
+                    <input type="text" id="infoPrecio2" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Precio 3:</label>
+                    <input type="text" id="infoPrecio3" readonly class="readonly-input">
+                  </div>
+                </div>
+              </div>
+
+              <!-- CAMPOS DE CANTIDAD Y PRECIO -->
+              <div class="form-row" style="margin-top: 15px;">
+                <div class="form-group">
+                  <label>Cantidad:</label>
+                  <input type="number" id="productoCantidad" min="1" value="1" step="1">
+                </div>
+                <div class="form-group">
+                  <label>Precio Unitario:</label>
+                  <input type="number" id="productoPrecio" min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label>Descuento (%):</label>
+                  <input type="number" id="productoDescuento" min="0" max="100" value="0" step="0.1">
+                </div>
+              </div>
+              <button type="button" onclick="agregarProductoAPedido()" class="btn btn-success">➕ Agregar Producto</button>
+              <input type="hidden" id="productoSeleccionadoID">
+            </div>
+
+            <!-- TABLA DE PRODUCTOS -->
+            <div class="table-container" style="margin-top: 20px;">
+              <table id="tablaProductosPedido">
+                <thead>
+                  <tr>
+                    <th style="width: 80px">Ref.</th>
+                    <th>Descripción</th>
+                    <th style="width: 90px">Cantidad</th>
+                    <th style="width: 100px">Presentación</th>
+                    <th style="width: 110px">Precio Unit.</th>
+                    <th style="width: 90px">Desc. %</th>
+                    <th style="width: 120px">Total</th>
+                    <th style="width: 80px">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="itemsPedido">
+                  <tr>
+                    <td colspan="8" class="text-center" style="color: #999;">
+                      No hay productos agregados. Use el buscador para agregar productos.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- TOTALES -->
+            <div class="pedido-totales">
+              <div class="total-row total-final">
+                <span>Total del Pedido:</span>
+                <span id="pedidoTotal">$0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTONES DE ACCIÓN -->
+          <div class="form-actions">
+            <button type="button" onclick="guardarPedido()" class="btn btn-success">💾 Guardar Pedido</button>
+            <button type="button" onclick="cancelarPedido()" class="btn btn-secondary">❌ Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: FACTURAS -->
+    <div id="view-facturas" class="view-container">
+      <div class="card">
+        <h2>Gestión de Facturas</h2>
+        <button onclick="iniciarNuevaFactura()" class="btn btn-primary">➕ Nueva Factura</button>
+        
+        <div id="listaFacturas" class="table-container">
+          <table id="tablaFacturas">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Número</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Saldo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: NUEVA FACTURA -->
+    <div id="modalFactura" class="modal-overlay" style="display:none;">
+      <div class="modal-container modal-xl">
+        <div class="modal-header">
+          <h3>📄 Nueva Factura</h3>
+          <button class="modal-close" onclick="cancelarFactura()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+          <!-- SECCIÓN 1: DATOS DEL CLIENTE -->
+          <div class="pedido-seccion">
+            <h4>👤 Información del Cliente</h4>
+            <div class="form-row">
+              <div class="form-group" style="flex: 2;">
+                <label>Buscar Cliente por Nombre o NIT:</label>
+                <div class="search-input-group">
+                  <input type="text" 
+                         id="buscarClienteFactura" 
+                         placeholder="Escribe nombre o identificación..."
+                         autocomplete="off"
+                         oninput="buscarClienteFacturaEnTiempoReal(this.value)">
+                  <div id="resultadosClienteFactura" class="search-results"></div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Cliente Seleccionado:</label>
+                <input type="text" id="facturaClienteNombre" readonly class="readonly-input">
+                <input type="hidden" id="facturaClienteID">
+              </div>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label>NIT/CC:</label>
+                <input type="text" id="facturaClienteIdentificacion" readonly class="readonly-input">
+              </div>
+              <div class="form-group">
+                <label>Ciudad:</label>
+                <input type="text" id="facturaClienteCiudad" readonly class="readonly-input">
+              </div>
+              <div class="form-group">
+                <label>Teléfono:</label>
+                <input type="text" id="facturaClienteTelefono" readonly class="readonly-input">
+              </div>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 2: INFORMACIÓN DE LA FACTURA -->
+          <div class="pedido-seccion">
+            <h4>📝 Información de la Factura</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Número de Factura:</label>
+                <input type="text" id="facturaNumero" placeholder="Ej: FAC-0001" required>
+              </div>
+              <div class="form-group">
+                <label>Tipo de Pago:</label>
+                <select id="facturaTipoPago" required>
+                  <option value="CONTADO">Contado</option>
+                  <option value="CREDITO">Crédito</option>
+                  <option value="ANTICIPADO">Anticipado</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Fecha de Vencimiento:</label>
+                <input type="date" id="facturaFechaVencimiento">
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Observaciones:</label>
+              <textarea id="facturaNotas" rows="2" placeholder="Notas u observaciones de la factura..."></textarea>
+            </div>
+          </div>
+
+          <!-- SECCIÓN 3: PRODUCTOS -->
+          <div class="pedido-seccion">
+            <h4>📦 Productos de la Factura</h4>
+            
+            <div class="agregar-producto-form">
+              <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                  <label>Buscar Producto por Referencia o Descripción:</label>
+                  <div class="search-input-group">
+                    <input type="text" 
+                           id="buscarProductoFactura" 
+                           placeholder="Escribe referencia o descripción..."
+                           autocomplete="off"
+                           oninput="buscarProductoFacturaEnTiempoReal(this.value)">
+                    <div id="resultadosProductoFactura" class="search-results"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INFORMACIÓN DEL PRODUCTO SELECCIONADO -->
+              <div id="infoProductoSeleccionadoFactura" class="producto-info-panel" style="display: none;">
+                <h5 style="margin-bottom: 12px; color: #0f766e;">📋 Información del Producto</h5>
+                <div class="form-row" style="margin-bottom: 8px;">
+                  <div class="form-group">
+                    <label>Referencia:</label>
+                    <input type="text" id="infoReferenciaFactura" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group" style="flex: 2;">
+                    <label>Descripción:</label>
+                    <input type="text" id="infoDescripcionFactura" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Formato:</label>
+                    <input type="text" id="infoFormatoFactura" readonly class="readonly-input">
+                  </div>
+                </div>
+                <div class="form-row" style="margin-bottom: 8px;">
+                  <div class="form-group">
+                    <label>Presentación:</label>
+                    <input type="text" id="infoPresentacionFactura" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Und/Empaque:</label>
+                    <input type="text" id="infoUndEmpaqueFactura" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Fichas/Caja:</label>
+                    <input type="text" id="infoFichasPorCajaFactura" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Cajas/Pallet:</label>
+                    <input type="text" id="infoCajasPorPalletFactura" readonly class="readonly-input">
+                  </div>
+                </div>
+                <div class="form-row" style="margin-bottom: 8px;">
+                  <div class="form-group">
+                    <label>Peso/Caja:</label>
+                    <input type="text" id="infoPesoPorCajaFactura" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Precio 1:</label>
+                    <input type="text" id="infoPrecio1Factura" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Precio 2:</label>
+                    <input type="text" id="infoPrecio2Factura" readonly class="readonly-input">
+                  </div>
+                  <div class="form-group">
+                    <label>Precio 3:</label>
+                    <input type="text" id="infoPrecio3Factura" readonly class="readonly-input">
+                  </div>
+                </div>
+              </div>
+
+              <!-- CAMPOS DE CANTIDAD Y PRECIO -->
+              <div class="form-row" style="margin-top: 15px;">
+                <div class="form-group">
+                  <label>Cantidad:</label>
+                  <input type="number" id="facturaProductoCantidad" min="1" value="1" step="1">
+                </div>
+                <div class="form-group">
+                  <label>Precio Unitario:</label>
+                  <input type="number" id="facturaProductoPrecio" min="0" step="0.01" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                  <label>Descuento (%):</label>
+                  <input type="number" id="facturaProductoDescuento" min="0" max="100" value="0" step="0.1">
+                </div>
+              </div>
+              <button type="button" onclick="agregarProductoAFactura()" class="btn btn-success">➕ Agregar Producto</button>
+              <input type="hidden" id="facturaProductoSeleccionadoID">
+            </div>
+
+            <!-- TABLA DE PRODUCTOS -->
+            <div class="table-container" style="margin-top: 20px;">
+              <table id="tablaProductosFactura">
+                <thead>
+                  <tr>
+                    <th style="width: 80px">Ref.</th>
+                    <th>Descripción</th>
+                    <th style="width: 90px">Cantidad</th>
+                    <th style="width: 100px">Presentación</th>
+                    <th style="width: 110px">Precio Unit.</th>
+                    <th style="width: 90px">Desc. %</th>
+                    <th style="width: 120px">Total</th>
+                    <th style="width: 80px">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="itemsFactura">
+                  <tr>
+                    <td colspan="8" class="text-center" style="color: #999;">
+                      No hay productos agregados. Use el buscador para agregar productos.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- TOTALES -->
+            <div class="pedido-totales">
+              <div class="total-row total-final">
+                <span>Total de la Factura:</span>
+                <span id="facturaTotal">$0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOTONES DE ACCIÓN -->
+          <div class="form-actions">
+            <button type="button" onclick="guardarFactura()" class="btn btn-success">💾 Guardar Factura</button>
+            <button type="button" onclick="cancelarFactura()" class="btn btn-secondary">❌ Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: RECAUDOS -->
+    <div id="view-recaudos" class="view-container">
+      <div class="card">
+        <h2>Recaudos</h2>
+        <button onclick="mostrarFormulario('formRecaudo')" class="btn btn-primary">➕ Registrar Recaudo</button>
+
+        <div id="formRecaudo" class="form-container" style="display:none;">
+          <h3>Registro de Recaudos</h3>
+          <form onsubmit="crearRecaudo(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Tipo:</label>
+                <select id="recaudoTipo" required>
+                  <option value="ANTICIPO">Anticipo</option>
+                  <option value="ABONO">Abono</option>
+                  <option value="PAGO_FACTURA">Pago de factura</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Factura ID (opcional):</label>
+                <input type="text" id="recaudoFacturaID">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Cliente ID (opcional):</label>
+                <input type="text" id="recaudoClienteID">
+              </div>
+              <div class="form-group">
+                <label>Valor:</label>
+                <input type="number" id="recaudoValor" min="0" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Forma/Medio de pago:</label>
+                <select id="recaudoMetodo"></select>
+              </div>
+              <div class="form-group">
+                <label>Referencia:</label>
+                <input type="text" id="recaudoReferencia">
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Observaciones:</label>
+              <textarea id="recaudoObservaciones" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-success">💾 Guardar Recaudo</button>
+            <button type="button" onclick="ocultarFormulario('formRecaudo')" class="btn btn-secondary">❌ Cancelar</button>
+          </form>
+        </div>
+
+        <div id="listaRecaudos" class="table-container">
+          <table id="tablaRecaudos">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Factura</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Valor</th>
+                <th>Forma/Medio</th>
+                <th>Referencia</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Formas y Medios de Pago</h2>
+        <button onclick="mostrarFormulario('formFormaPago')" class="btn btn-primary">➕ Nueva Forma/Medio</button>
+
+        <div id="formFormaPago" class="form-container" style="display:none;">
+          <h3>Nueva Forma o Medio de Pago</h3>
+          <form onsubmit="crearFormaPago(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label>Nombre:</label>
+                <input type="text" id="formaPagoNombre" required>
+              </div>
+              <div class="form-group">
+                <label>Tipo:</label>
+                <select id="formaPagoTipo" required>
+                  <option value="FORMA">Forma</option>
+                  <option value="MEDIO">Medio</option>
+                </select>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-success">💾 Guardar</button>
+            <button type="button" onclick="ocultarFormulario('formFormaPago')" class="btn btn-secondary">❌ Cancelar</button>
+          </form>
+        </div>
+
+        <div id="listaFormasPago" class="table-container">
+          <table id="tablaFormasPago">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- VISTA: INVENTARIO -->
+    <div id="view-inventario" class="view-container">
+      <div class="card">
+        <h2>Control de Inventario</h2>
+        <button onclick="mostrarFormulario('formMovimiento')" class="btn btn-primary">➕ Registrar Movimiento</button>
+        
+        <div id="formMovimiento" class="form-container" style="display:none;">
+          <h3>Registrar Movimiento de Inventario</h3>
+          <form onsubmit="registrarMovimiento(event)">
+            <div class="form-group">
+              <label>Tipo:</label>
+              <select id="tipoMovimiento" required>
+                <option value="ENTRADA">Entrada</option>
+                <option value="SALIDA">Salida</option>
+                <option value="TRASLADO">Traslado</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Producto ID:</label>
+              <input type="text" id="movProductoID" required>
+            </div>
+            <div class="form-group">
+              <label>Bodega Origen:</label>
+              <input type="text" id="movBodegaOrigen">
+            </div>
+            <div class="form-group">
+              <label>Bodega Destino:</label>
+              <input type="text" id="movBodegaDestino">
+            </div>
+            <div class="form-group">
+              <label>Cantidad:</label>
+              <input type="number" id="movCantidad" required>
+            </div>
+            <button type="submit" class="btn btn-success">💾 Registrar</button>
+            <button type="button" onclick="ocultarFormulario('formMovimiento')" class="btn btn-secondary">❌ Cancelar</button>
+          </form>
+        </div>
+        
+        <div id="listaInventario" class="table-container">
+          <table id="tablaInventario">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Bodega</th>
+                <th>Stock Actual</th>
+                <th>Stock Mínimo</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Loading Spinner -->
+  <div id="loading" class="loading" style="display:none;">
+    <div class="spinner"></div>
+    <p>Cargando...</p>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Modal Configuración -->
+  <div id="modalConfiguracion" class="modal" style="display:none;">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>⚙️ Configuración del Sistema</h3>
+        <button class="modal-close" onclick="cerrarConfiguracion()">✖</button>
+      </div>
+      
+      <div class="config-tabs">
+        <button class="config-tab active" onclick="cambiarTabConfig('conexion')" data-tab="conexion">
+          🔌 Conexión
+        </button>
+        <button class="config-tab" onclick="cambiarTabConfig('general')" data-tab="general">
+          🏢 General
+        </button>
+        <button class="config-tab" onclick="cambiarTabConfig('modulos')" data-tab="modulos">
+          📦 Módulos
+        </button>
+      </div>
+      
+      <div class="config-content">
+        
+        <!-- Tab: Conexión -->
+        <div id="configTab-conexion" class="config-tab-content active">
+          <h4>Conexión al Backend</h4>
+          <p class="config-description">Configura la URL de tu Google Apps Script para conectar el CRM con tu base de datos.</p>
+          
+          <div class="form-group">
+            <label>URL de Google Apps Script:</label>
+            <input type="text" id="configApiUrl" placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec">
+          </div>
+          
+          <div class="connection-status">
+            <div class="status-badge" id="connectionStatusBadge">
+              <span class="status-dot"></span>
+              <span id="connectionStatusText">Desconectado</span>
+            </div>
+          </div>
+          
+          <div class="help-box">
+            <h5>📝 ¿Cómo obtener la URL?</h5>
+            <ol>
+              <li>Abre tu proyecto en Google Apps Script</li>
+              <li>Ve a <strong>Implementar → Nueva implementación</strong></li>
+              <li>Selecciona <strong>Aplicación web</strong></li>
+              <li>Configura:
+                <ul>
+                  <li>Ejecutar como: <strong>Yo</strong></li>
+                  <li>Quién tiene acceso: <strong>Cualquier persona</strong></li>
+                </ul>
+              </li>
+              <li>Copia la URL y pégala arriba</li>
+            </ol>
+          </div>
+          
+          <div class="config-actions">
+            <button onclick="testearConexion()" class="btn btn-secondary">🧪 Probar Conexión</button>
+            <button onclick="guardarConfiguracionAPI()" class="btn btn-primary">💾 Guardar y Conectar</button>
+          </div>
+        </div>
+        
+        <!-- Tab: General -->
+        <div id="configTab-general" class="config-tab-content">
+          <h4>Parámetros Generales</h4>
+          <p class="config-description">Configura los datos principales de tu empresa y preferencias del sistema.</p>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre de la Empresa:</label>
+              <input type="text" id="configEmpresa" placeholder="Mi Empresa SAS">
+            </div>
+            <div class="form-group">
+              <label>Moneda:</label>
+              <select id="configMoneda">
+                <option value="COP">COP - Peso Colombiano</option>
+                <option value="USD">USD - Dólar</option>
+                <option value="EUR">EUR - Euro</option>
+                <option value="MXN">MXN - Peso Mexicano</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>IVA por Defecto (%):</label>
+              <input type="number" id="configIVA" placeholder="19" min="0" max="100">
+            </div>
+            <div class="form-group">
+              <label>Zona Horaria:</label>
+              <select id="configZonaHoraria">
+                <option value="America/Bogota">Colombia (GMT-5)</option>
+                <option value="America/Mexico_City">México (GMT-6)</option>
+                <option value="America/New_York">New York (GMT-5)</option>
+                <option value="Europe/Madrid">Madrid (GMT+1)</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label>Email de Notificaciones:</label>
+            <input type="email" id="configEmail" placeholder="admin@empresa.com">
+          </div>
+          
+          <h5>Consecutivos</h5>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Prefijo Clientes:</label>
+              <input type="text" id="configPrefijoCliente" placeholder="CLI" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label>Prefijo Pedidos:</label>
+              <input type="text" id="configPrefijoPedido" placeholder="PED" maxlength="5">
+            </div>
+            <div class="form-group">
+              <label>Prefijo Facturas:</label>
+              <input type="text" id="configPrefijoFactura" placeholder="FAC" maxlength="5">
+            </div>
+          </div>
+          
+          <div class="config-actions">
+            <button onclick="guardarConfiguracionGeneral()" class="btn btn-success">💾 Guardar Configuración</button>
+            <button onclick="restaurarDefectos()" class="btn btn-secondary">🔄 Restaurar Valores por Defecto</button>
+          </div>
+
+          <h4>Asesores de Ventas</h4>
+          <p class="config-description">Administra los asesores disponibles para asignación en ventas.</p>
+
+          <button onclick="mostrarFormulario('formAsesor')" class="btn btn-primary">➕ Nuevo Asesor</button>
+
+          <div id="formAsesor" class="form-container" style="display:none;">
+            <h3>Nuevo Asesor</h3>
+            <form onsubmit="crearAsesor(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Nombre:</label>
+                  <input type="text" id="asesorNombre" required>
+                </div>
+                <div class="form-group">
+                  <label>Email:</label>
+                  <input type="email" id="asesorEmail">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Teléfono:</label>
+                  <input type="text" id="asesorTelefono">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-success">💾 Guardar Asesor</button>
+              <button type="button" onclick="ocultarFormulario('formAsesor')" class="btn btn-secondary">❌ Cancelar</button>
+            </form>
+          </div>
+
+          <div id="listaAsesores" class="table-container">
+            <table id="tablaAsesores">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Email</th>
+                  <th>Teléfono</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+        
+        <!-- Tab: Módulos -->
+        <div id="configTab-modulos" class="config-tab-content">
+          <h4>Gestión de Módulos</h4>
+          <p class="config-description">Activa o desactiva los módulos según las necesidades de tu negocio.</p>
+          
+          <div class="modulos-grid">
+            
+            <div class="modulo-card">
+              <div class="modulo-header">
+                <div class="modulo-icon">📊</div>
+                <div class="modulo-info">
+                  <h5>Dashboard</h5>
+                  <p>Panel principal con métricas</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="moduloDashboard" checked disabled>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="modulo-card">
+              <div class="modulo-header">
+                <div class="modulo-icon">🔄</div>
+                <div class="modulo-info">
+                  <h5>Segmentación de Ventas</h5>
+                  <p>Gestión del embudo comercial</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="moduloPipeline" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="modulo-card">
+              <div class="modulo-header">
+                <div class="modulo-icon">👥</div>
+                <div class="modulo-info">
+                  <h5>Clientes</h5>
+                  <p>Gestión de clientes</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="moduloClientes" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="modulo-card">
+              <div class="modulo-header">
+                <div class="modulo-icon">📦</div>
+                <div class="modulo-info">
+                  <h5>Productos</h5>
+                  <p>Catálogo de productos</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="moduloProductos" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="modulo-card">
+              <div class="modulo-header">
+                <div class="modulo-icon">📋</div>
+                <div class="modulo-info">
+                  <h5>Pedidos</h5>
+                  <p>Gestión de pedidos</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="moduloPedidos" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="modulo-card">
+              <div class="modulo-header">
+                <div class="modulo-icon">💰</div>
+                <div class="modulo-info">
+                  <h5>Facturas</h5>
+                  <p>Facturación y pagos</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="moduloFacturas" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <div class="modulo-card">
+              <div class="modulo-header">
+                <div class="modulo-icon">💳</div>
+                <div class="modulo-info">
+                  <h5>Recaudos</h5>
+                  <p>Anticipos, abonos y pagos</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="moduloRecaudos" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            
+            <div class="modulo-card">
+              <div class="modulo-header">
+                <div class="modulo-icon">🏪</div>
+                <div class="modulo-info">
+                  <h5>Inventario</h5>
+                  <p>Control de stock</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="moduloInventario" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+            
+          </div>
+          
+          <div class="config-actions">
+            <button onclick="guardarConfiguracionModulos()" class="btn btn-primary">💾 Guardar Módulos</button>
+            <button onclick="activarTodosModulos()" class="btn btn-secondary">✅ Activar Todos</button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalle de Pedido -->
+  <div id="modalDetallePedido" class="modal" style="display:none;">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h3>Detalle del Pedido</h3>
+        <button class="modal-close" onclick="cerrarModalDetalle()">✖</button>
+      </div>
+      <div id="modalDetallePedidoContent">
+        <!-- Contenido dinámico -->
+      </div>
+    </div>
+  </div>
+
+  </div>
+  <!-- Fin de appContainer -->
+
+  <script src="app.js"></script>
+</body>
+</html>
