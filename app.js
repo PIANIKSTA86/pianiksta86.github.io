@@ -1,3 +1,24 @@
+/*
+ * ========================================
+ * CRM v2.0 - Sistema de Gestión Empresarial
+ * ========================================
+ * 
+ * CONFIGURACIÓN DEL BACKEND:
+ * --------------------------
+ * Para conectar este CRM con tu backend de Google Apps Script:
+ * 
+ * 1. Ve a la línea 256 de este archivo
+ * 2. Busca la constante BACKEND_URL
+ * 3. Reemplaza 'TU_DEPLOYMENT_ID' con el ID de tu despliegue de Google Apps Script
+ * 
+ * Ejemplo:
+ * const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbx1234567890abcdef/exec';
+ * 
+ * También puedes cambiar la URL desde el frontend usando el modal de configuración (⚙️).
+ * 
+ * ========================================
+ */
+
 // ========================================
 // AUTENTICACIÓN Y LOGIN - UX/UI
 // ========================================
@@ -244,7 +265,13 @@ function handleSwipe() {
 // ========================================
 // CONFIGURACIÓN GLOBAL - CRM v2.0
 // ========================================
-let API_URL = localStorage.getItem('crmApiUrl') || '';
+
+// URL del Backend de Google Apps Script
+// Reemplaza esta URL con la URL de tu despliegue de Google Apps Script
+const BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwxl71I6GbDmrLn1H6q5F97JDZ2Ka2WSbUFyDHpRhXd25lIehVw_VMSt9zmLfaU3eSp/exec';
+
+// La URL puede ser sobrescrita desde el frontend si es necesario
+let API_URL = localStorage.getItem('crmApiUrl') || BACKEND_URL;
 let pipelineData = null;
 
 // Configuración general
@@ -283,19 +310,22 @@ let modulosActivos = {
 function inicializarApp() {
   document.body.classList.add('dashboard-view');
   
-  if (API_URL) {
-    const urlInput = document.getElementById('apiUrl');
-    if (urlInput) {
-      urlInput.value = API_URL;
-    }
-    verificarConexion();
-  } else {
-    // Mostrar banner de configuración si no hay API configurada
+  // Siempre hay una URL configurada (BACKEND_URL por defecto)
+  const urlInput = document.getElementById('apiUrl');
+  if (urlInput) {
+    urlInput.value = API_URL;
+  }
+  
+  // Verificar conexión con el backend
+  verificarConexion();
+  
+  // Solo mostrar banner de configuración si la URL es la por defecto y no funciona
+  if (API_URL === BACKEND_URL && BACKEND_URL.includes('TU_DEPLOYMENT_ID')) {
     const configBanner = document.getElementById('configBanner');
     if (configBanner) {
       configBanner.classList.remove('hidden');
     }
-    actualizarEstado('Sin configurar', 'error');
+    actualizarEstado('Configuración requerida', 'warning');
   }
   
   // Cargar vista inicial
