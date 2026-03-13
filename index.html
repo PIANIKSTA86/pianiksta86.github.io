@@ -9,27 +9,107 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         /* Estilos personalizados para la aplicación */
+        :root {
+            --color-cafe: #76401c;
+            --color-miel: #ffaf22;
+            --color-abano: #e1cda6;
+            --color-abano-soft: #f1e5cd;
+            --color-cafe-soft: #9b6a4a;
+        }
+
         body { font-family: 'Inter', sans-serif; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .gradient-bg { background: linear-gradient(135deg, #fff7ed 0%, #fde68a 100%); }
-        .card { background: white; border-radius: 0.5rem; box-shadow: 0 4px 14px 0 rgba(120, 53, 15, 0.12); border: 1px solid #fde7c3; }
-        .btn-primary { background: linear-gradient(135deg, #b45309 0%, #ea580c 100%); color: white; }
+        .gradient-bg { background: linear-gradient(135deg, var(--color-abano-soft) 0%, var(--color-abano) 100%); }
+        .card { background: white; border-radius: 0.5rem; box-shadow: 0 4px 14px 0 rgba(118, 64, 28, 0.16); border: 1px solid var(--color-abano); }
+        .btn-primary { background-color: var(--color-cafe); color: white; }
         .btn-primary:hover { opacity: 0.9; }
         .input-field { border: 1px solid #d1d5db; border-radius: 0.375rem; padding: 0.5rem; }
         .table { width: 100%; border-collapse: collapse; }
         .table th, .table td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+
+        /* Override de utilidades Tailwind para mantener una paleta consistente en toda la app */
+        .from-amber-700 {
+            --tw-gradient-from: var(--color-cafe) var(--tw-gradient-from-position) !important;
+            --tw-gradient-to: rgb(118 64 28 / 0) var(--tw-gradient-to-position) !important;
+            --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+        }
+
+        .to-orange-500 {
+            --tw-gradient-to: var(--color-miel) var(--tw-gradient-to-position) !important;
+        }
+
+        .text-amber-700,
+        .text-amber-600,
+        .text-amber-800,
+        .text-amber-900,
+        .hover\:text-amber-800:hover {
+            color: var(--color-cafe) !important;
+        }
+
+        .text-orange-100 {
+            color: #ffffff !important;
+        }
+
+        .hover\:bg-amber-50:hover,
+        .bg-amber-50,
+        .bg-orange-50 {
+            background-color: var(--color-abano-soft) !important;
+        }
+
+        .border-amber-600,
+        .border-amber-200,
+        .border-orange-200,
+        .border-orange-300,
+        .border-orange-400,
+        .hover\:border-orange-300:hover {
+            border-color: var(--color-cafe-soft) !important;
+        }
+
+        .mobile-sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.25s ease;
+        }
+
+        .mobile-sidebar.open {
+            transform: translateX(0);
+        }
+
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+        }
+
+        .table-scroll .table {
+            min-width: 680px;
+        }
+
+        .table-scroll.table-wide .table {
+            min-width: 1024px;
+        }
+
+        @media (max-width: 768px) {
+            #rentabilidad .table th,
+            #rentabilidad .table td {
+                white-space: nowrap;
+                font-size: 0.82rem;
+                padding: 0.45rem;
+            }
+        }
     </style>
 </head>
 <body class="gradient-bg min-h-screen p-4">
     <!-- Contenedor principal de la aplicación -->
     <div class="max-w-7xl mx-auto">
         <!-- Header con título y botón de guardar -->
-        <div class="bg-gradient-to-r from-amber-700 to-orange-500 text-white p-6 rounded-xl shadow-lg mb-6">
+        <div class="text-white p-6 rounded-xl shadow-lg mb-6" style="background-color: #76401c;">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <img src="./tartaLogo.JPG" alt="Logo de tarta" class="h-16 w-auto">
-                    <div>
+                    <img src="./TartaLogo.jpeg" alt="Logo de tarta" class="h-20 w-auto">
+                    <div>   
                         <h1 class="text-3xl font-bold flex items-center gap-2">Gestor de Panaderia</h1>
                         <p class="text-orange-100 mt-2">Produccion, cotizacion y venta para panaderia y reposteria - Version Offline</p>
                     </div>
@@ -41,20 +121,51 @@
         <!-- Área para mostrar mensajes de estado -->
         <div id="messageStatus" class="mb-4"></div>
 
-        <!-- Navegación por tabs -->
+        <!-- Navegación por tabs (desktop) y sidebar (mobile) -->
         <div class="bg-white rounded-lg shadow-md mb-6">
-            <div class="flex border-b">
-                <button class="tab-btn active px-4 py-2 border-b-2 border-amber-600 text-amber-700" data-tab="config">Configuracion</button>
-                <button class="tab-btn px-4 py-2 text-gray-600" data-tab="cliente">Cliente</button>
-                <button class="tab-btn px-4 py-2 text-gray-600" data-tab="materiales">Materiales</button>
-                <button class="tab-btn px-4 py-2 text-gray-600" data-tab="recetas">Recetas</button>
-                <button class="tab-btn px-4 py-2 text-gray-600" data-tab="produccion">Produccion</button>
-                <button class="tab-btn px-4 py-2 text-gray-600" data-tab="gastos">Gastos Operativos</button>
-                <button class="tab-btn px-4 py-2 text-gray-600" data-tab="rentabilidad">Rentabilidad</button>
-                <button class="tab-btn px-4 py-2 text-gray-600" data-tab="pdf">PDF</button>
-                <button class="tab-btn px-4 py-2 text-gray-600" data-tab="ayuda">Ayuda</button>
+            <div class="md:hidden p-3 border-b flex items-center justify-between">
+                <span id="currentTabLabel" class="font-semibold text-amber-700">Configuracion</span>
+                <button id="openSidebarBtn" class="px-3 py-2 rounded-lg text-white" style="background-color: #76401c;" aria-label="Abrir menu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+            <div class="hidden md:flex border-b overflow-x-auto">
+                <button class="tab-btn active px-4 py-2 border-b-2 border-amber-600 text-amber-700 whitespace-nowrap" data-tab="config">Configuracion</button>
+                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="cliente">Cliente</button>
+                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="materiales">Materiales</button>
+                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="recetas">Recetas</button>
+                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="produccion">Produccion</button>
+                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="gastos">Gastos Operativos</button>
+                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="rentabilidad">Rentabilidad</button>
+                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="pdf">PDF</button>
+                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="ayuda">Ayuda</button>
             </div>
         </div>
+
+        <div id="mobileSidebarOverlay" class="fixed inset-0 bg-black/40 z-40 hidden md:hidden"></div>
+        <aside id="mobileSidebar" class="mobile-sidebar fixed top-0 left-0 h-full w-72 max-w-[85vw] bg-white shadow-xl z-50 md:hidden">
+            <div class="p-4 border-b flex items-center justify-between">
+                <h3 class="font-bold text-amber-700">Menu</h3>
+                <button id="closeSidebarBtn" class="p-2 rounded hover:bg-amber-50" aria-label="Cerrar menu">
+                    <svg class="w-5 h-5 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <nav class="p-3 space-y-1">
+                <button class="tab-btn active w-full text-left px-3 py-2 rounded bg-amber-50 text-amber-700" data-tab="config">Configuracion</button>
+                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="cliente">Cliente</button>
+                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="materiales">Materiales</button>
+                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="recetas">Recetas</button>
+                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="produccion">Produccion</button>
+                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="gastos">Gastos Operativos</button>
+                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="rentabilidad">Rentabilidad</button>
+                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="pdf">PDF</button>
+                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="ayuda">Ayuda</button>
+            </nav>
+        </aside>
 
         <!-- Contenido de las tabs -->
         <div id="config" class="tab-content active">
@@ -193,72 +304,78 @@
                 <h2 class="text-xl font-bold mb-4">Cálculos de Rentabilidad</h2>
                 <div class="mb-6">
                     <h3 id="laborCalcTitle" class="text-lg font-semibold mb-2">Cálculo de Mano de Obra</h3>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th id="conceptTh">Concepto</th>
-                                <th id="totalMaterialsTh">Total Materiales</th>
-                                <th id="laborPctTh">% Mano de Obra</th>
-                                <th id="totalLaborTh">Total Mano de Obra</th>
-                            </tr>
-                        </thead>
-                        <tbody id="manoObraTable">
-                            <tr>
-                                <td id="laborTd">Mano de Obra</td>
-                                <td id="totalMaterialesDisplay">-</td>
-                                <td><input id="manoObraPctInput" type="number" step="0.01" class="input-field w-full" value="30"></td>
-                                <td id="totalManoObraDisplay">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th id="conceptTh">Concepto</th>
+                                    <th id="totalMaterialsTh">Total Materiales</th>
+                                    <th id="laborPctTh">% Mano de Obra</th>
+                                    <th id="totalLaborTh">Total Mano de Obra</th>
+                                </tr>
+                            </thead>
+                            <tbody id="manoObraTable">
+                                <tr>
+                                    <td id="laborTd">Mano de Obra</td>
+                                    <td id="totalMaterialesDisplay">-</td>
+                                    <td><input id="manoObraPctInput" type="number" step="0.01" class="input-field w-full" value="30"></td>
+                                    <td id="totalManoObraDisplay">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="mb-6">
                     <h3 id="assistantsTitle" class="text-lg font-semibold mb-2">Asistentes</h3>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th id="assistant1Th">Asistente 1</th>
-                                <th id="assistant2Th">Asistente 2</th>
-                                <th id="assistant3Th">Asistente 3</th>
-                                <th id="assistant4Th">Asistente 4</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><input id="asistente1" type="number" step="0.01" class="input-field w-full"></td>
-                                <td><input id="asistente2" type="number" step="0.01" class="input-field w-full"></td>
-                                <td><input id="asistente3" type="number" step="0.01" class="input-field w-full"></td>
-                                <td><input id="asistente4" type="number" step="0.01" class="input-field w-full"></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th id="assistant1Th">Asistente 1</th>
+                                    <th id="assistant2Th">Asistente 2</th>
+                                    <th id="assistant3Th">Asistente 3</th>
+                                    <th id="assistant4Th">Asistente 4</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input id="asistente1" type="number" step="0.01" class="input-field w-full"></td>
+                                    <td><input id="asistente2" type="number" step="0.01" class="input-field w-full"></td>
+                                    <td><input id="asistente3" type="number" step="0.01" class="input-field w-full"></td>
+                                    <td><input id="asistente4" type="number" step="0.01" class="input-field w-full"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="mb-6">
                     <h3 id="profitSettlementTitle" class="text-lg font-semibold mb-2">Liquidación de Rentabilidad</h3>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th id="conceptRentTh">Concepto</th>
-                                <th id="profitPctTh">% Rentabilidad</th>
-                                <th id="totalCostsTh">Total de Costos</th>
-                                <th id="myProfitTh">Mi Ganancia</th>
-                                <th id="decorationValueTh">Valor Decoracion</th>
-                                <th id="additionalExpensesTh">Gastos Adicionales</th>
-                                <th id="totalWithoutTaxTh">Total sin Impuesto</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td id="profitTd">Rentabilidad</td>
-                                <td><input id="rentabilidadPct" type="number" step="0.01" class="input-field w-full" value="45"></td>
-                                <td id="totalCostosDisplay">-</td>
-                                <td id="miGananciaDisplay">-</td>
-                                <td id="subtotalFinalDisplay">-</td>
-                                <td id="gastosAdicionalesDisplay">-</td>
-                                <td id="valorTotalDisplay">-</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-scroll table-wide">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th id="conceptRentTh">Concepto</th>
+                                    <th id="profitPctTh">% Rentabilidad</th>
+                                    <th id="totalCostsTh">Total de Costos</th>
+                                    <th id="myProfitTh">Mi Ganancia</th>
+                                    <th id="decorationValueTh">Valor Decoracion</th>
+                                    <th id="additionalExpensesTh">Gastos Adicionales</th>
+                                    <th id="totalWithoutTaxTh">Total sin Impuesto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td id="profitTd">Rentabilidad</td>
+                                    <td><input id="rentabilidadPct" type="number" step="0.01" class="input-field w-full" value="45"></td>
+                                    <td id="totalCostosDisplay">-</td>
+                                    <td id="miGananciaDisplay">-</td>
+                                    <td id="subtotalFinalDisplay">-</td>
+                                    <td id="gastosAdicionalesDisplay">-</td>
+                                    <td id="valorTotalDisplay">-</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="mt-6">
                     <h3 id="taxSettlementTitle" class="text-lg font-semibold mb-2">Liquidación de Impuestos</h3>
@@ -317,7 +434,7 @@
                 </div>
                 <div class="bg-gradient-to-r from-amber-700 to-orange-500 text-white p-6 rounded-xl shadow-lg mb-6 text-center">
                     <h3 id="totalWithTaxTitle" class="text-xl font-bold mb-4">Total por cobrar</h3>
-                    <div class="text-3xl font-extrabold" id="totalConImpuestoGrande"></div>
+                    <div class="text-2xl md:text-3xl font-extrabold" id="totalConImpuestoGrande"></div>
                 </div>
             </div>
         </div>
@@ -349,7 +466,7 @@
                     <p class="mb-4">Ingresa los datos del cliente: Nombre, Tipo de Servicio, Fechas de Cotización y Decoración, Lugar de Decoración, Email, Contacto, Descripción del servicio y Notas adicionales.</p>
 
                     <h3 class="text-lg font-semibold mb-2">3. Materiales</h3>
-                    <p class="mb-4">Registra tus insumos con costo unitario y unidad de medida (peso, volumen o cantidad). Esta base se usa automaticamente al crear recetas.</p>
+                    <p class="mb-4">Registra tus insumos con valor total, cantidad y unidad de medida (peso, volumen o cantidad). El sistema calcula automaticamente el costo por unidad para usarlo en recetas.</p>
 
                     <h3 class="text-lg font-semibold mb-2">4. Recetas</h3>
                     <p class="mb-4">Crea o personaliza una receta y agrega ingredientes desde el inventario. El sistema calcula el costo estimado por receta segun la cantidad de cada insumo.</p>
@@ -440,14 +557,80 @@
             moneda: 'COP',
             lastId: Date.now(),
             // Control de expansion de recetas
-            expandedRecipes: new Set()
+            expandedRecipes: new Set(),
+            // Control de expansion de insumos
+            expandedMaterials: new Set()
         };
 
         const measurementUnits = {
-            peso: ['kg', 'g', 'lb', 'oz'],
-            volumen: ['l', 'ml', 'gal', 'fl oz'],
-            cantidad: ['unidad', 'docena', 'bandeja', 'caja']
+            peso: ['kilogramo (kg)', 'gramo (g)', 'libra (lb)', 'onza (oz)'],
+            volumen: ['litro (l)', 'mililitro (ml)', 'galon (gal)', 'onza liquida (fl oz)'],
+            cantidad: ['unidad (und)', 'docena (doc)', 'bandeja (bdj)', 'caja (cja)']
         };
+
+        const legacyUnitMap = {
+            kg: 'kilogramo (kg)',
+            g: 'gramo (g)',
+            lb: 'libra (lb)',
+            oz: 'onza (oz)',
+            l: 'litro (l)',
+            ml: 'mililitro (ml)',
+            gal: 'galon (gal)',
+            'fl oz': 'onza liquida (fl oz)',
+            kilogramo: 'kilogramo (kg)',
+            gramo: 'gramo (g)',
+            libra: 'libra (lb)',
+            onza: 'onza (oz)',
+            litro: 'litro (l)',
+            mililitro: 'mililitro (ml)',
+            galon: 'galon (gal)',
+            'onza liquida': 'onza liquida (fl oz)',
+            unidad: 'unidad (und)',
+            docena: 'docena (doc)',
+            bandeja: 'bandeja (bdj)',
+            caja: 'caja (cja)'
+        };
+
+        const unitConversionMap = {
+            'kilogramo (kg)': { kind: 'peso', toBase: 1000 },
+            'gramo (g)': { kind: 'peso', toBase: 1 },
+            'libra (lb)': { kind: 'peso', toBase: 453.59237 },
+            'onza (oz)': { kind: 'peso', toBase: 28.349523125 },
+            'litro (l)': { kind: 'volumen', toBase: 1000 },
+            'mililitro (ml)': { kind: 'volumen', toBase: 1 },
+            'galon (gal)': { kind: 'volumen', toBase: 3785.411784 },
+            'onza liquida (fl oz)': { kind: 'volumen', toBase: 29.5735295625 },
+            'unidad (und)': { kind: 'cantidad', toBase: 1 },
+            'docena (doc)': { kind: 'cantidad', toBase: 12 },
+            'bandeja (bdj)': { kind: 'cantidad', toBase: 1 },
+            'caja (cja)': { kind: 'cantidad', toBase: 1 }
+        };
+
+        function normalizeUnitName(unit, unitType) {
+            const options = getUnitOptions(unitType);
+            const normalized = legacyUnitMap[unit] || unit;
+            return options.includes(normalized) ? normalized : options[0];
+        }
+
+        function convertUnits(value, fromUnit, toUnit) {
+            const fromInfo = unitConversionMap[fromUnit];
+            const toInfo = unitConversionMap[toUnit];
+            if (!fromInfo || !toInfo || fromInfo.kind !== toInfo.kind) {
+                return null;
+            }
+            return (value * fromInfo.toBase) / toInfo.toBase;
+        }
+
+        function getIngredientBaseQuantity(ingredient, material) {
+            const qty = parseFloat(ingredient.cantidad) || 0;
+            if (!material) return qty;
+
+            const baseUnit = normalizeUnitName(material.unidad, material.unidadTipo);
+            const ingredientUnit = normalizeUnitName(ingredient.unidad || baseUnit, material.unidadTipo);
+            const convertedQty = convertUnits(qty, ingredientUnit, baseUnit);
+
+            return Number.isFinite(convertedQty) ? convertedQty : qty;
+        }
 
         // Traducciones para la interfaz de usuario
         const uiTranslations = {
@@ -490,8 +673,8 @@
                 materialQuantity: 'Cantidad',
                 materialUnitType: 'Tipo Unidad',
                 materialUnit: 'Unidad Base',
-                materialUnitPrice: 'Costo Unit.',
-                materialSubtotal: 'Subtotal',
+                materialUnitPrice: 'Costo x Unidad',
+                materialSubtotal: 'Valor Total',
                 recipes: 'Recetas',
                 addRecipe: 'Crear Receta',
                 recipeName: 'Nombre de receta',
@@ -606,8 +789,8 @@
                 materialQuantity: 'Quantity',
                 materialUnitType: 'Unit Type',
                 materialUnit: 'Base Unit',
-                materialUnitPrice: 'Unit Cost',
-                materialSubtotal: 'Subtotal',
+                materialUnitPrice: 'Cost per Unit',
+                materialSubtotal: 'Total Cost',
                 recipes: 'Recipes',
                 addRecipe: 'Create Recipe',
                 recipeName: 'Recipe Name',
@@ -722,8 +905,8 @@
                 materialQuantity: 'Quantité',
                 materialUnitType: 'Type Unite',
                 materialUnit: 'Unite Base',
-                materialUnitPrice: 'Cout Unit.',
-                materialSubtotal: 'Sous-total',
+                materialUnitPrice: 'Cout par Unite',
+                materialSubtotal: 'Valeur Totale',
                 recipes: 'Recettes',
                 addRecipe: 'Creer Recette',
                 recipeName: 'Nom Recette',
@@ -807,15 +990,27 @@
             document.querySelector('h1').textContent = t.title;
             document.querySelector('p').textContent = t.subtitle;
             document.getElementById('saveDataBtn').textContent = t.saveData;
-            document.querySelector('[data-tab="config"]').textContent = t.configTab;
-            document.querySelector('[data-tab="cliente"]').textContent = t.clientTab;
-            document.querySelector('[data-tab="materiales"]').textContent = t.materialsTab;
-            document.querySelector('[data-tab="recetas"]').textContent = t.recipesTab;
-            document.querySelector('[data-tab="produccion"]').textContent = t.productionTab;
-            document.querySelector('[data-tab="gastos"]').textContent = t.expensesTab;
-            document.querySelector('[data-tab="rentabilidad"]').textContent = t.profitabilityTab;
-            document.querySelector('[data-tab="pdf"]').textContent = t.pdfTab;
-            document.querySelector('[data-tab="ayuda"]').textContent = t.helpTab;
+            const setTabLabel = (tabId, text) => {
+                document.querySelectorAll(`[data-tab="${tabId}"]`).forEach((el) => {
+                    el.textContent = text;
+                });
+            };
+
+            setTabLabel('config', t.configTab);
+            setTabLabel('cliente', t.clientTab);
+            setTabLabel('materiales', t.materialsTab);
+            setTabLabel('recetas', t.recipesTab);
+            setTabLabel('produccion', t.productionTab);
+            setTabLabel('gastos', t.expensesTab);
+            setTabLabel('rentabilidad', t.profitabilityTab);
+            setTabLabel('pdf', t.pdfTab);
+            setTabLabel('ayuda', t.helpTab);
+
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            const currentTabLabelElement = document.getElementById('currentTabLabel');
+            if (activeTabBtn && currentTabLabelElement) {
+                currentTabLabelElement.textContent = activeTabBtn.textContent.trim();
+            }
             // Config tab
             document.querySelector('#config h2').textContent = t.companyConfig;
             document.querySelector('label[for="empresa"]').textContent = t.companyName;
@@ -910,14 +1105,21 @@
                 const unitType = mat.unidadTipo || 'cantidad';
                 const unitOptions = getUnitOptions(unitType);
                 const cantidad = parseFloat(mat.cantidad) || 0;
-                const precioUnitario = parseFloat(mat.precioUnitario) || 0;
+                const rawSubtotal = parseFloat(mat.subtotal);
+                const rawUnitCost = parseFloat(mat.precioUnitario);
+                const subtotal = Number.isFinite(rawSubtotal)
+                    ? rawSubtotal
+                    : (Number.isFinite(rawUnitCost) ? cantidad * rawUnitCost : 0);
+                const precioUnitario = cantidad > 0
+                    ? (subtotal / cantidad)
+                    : (Number.isFinite(rawUnitCost) ? rawUnitCost : 0);
                 return {
                     ...mat,
                     unidadTipo: unitType,
-                    unidad: mat.unidad || unitOptions[0],
+                    unidad: normalizeUnitName(mat.unidad, unitType),
                     cantidad,
                     precioUnitario,
-                    subtotal: parseFloat(mat.subtotal) || (cantidad * precioUnitario)
+                    subtotal
                 };
             });
             const rawRecipes = Array.isArray(state.recipes)
@@ -925,24 +1127,41 @@
                 : (state.recipes && typeof state.recipes === 'object' ? Object.values(state.recipes) : []);
             state.recipes = rawRecipes.map((recipe) => ({
                 ...recipe,
-                ingredientes: Array.isArray(recipe.ingredientes) ? recipe.ingredientes : []
+                ingredientes: (Array.isArray(recipe.ingredientes) ? recipe.ingredientes : []).map((ing) => {
+                    const material = getMaterialById(ing.materialId);
+                    if (!material) {
+                        return {
+                            ...ing,
+                            cantidad: parseFloat(ing.cantidad) || 0,
+                            unidad: ing.unidad || ''
+                        };
+                    }
+
+                    return {
+                        ...ing,
+                        cantidad: parseFloat(ing.cantidad) || 0,
+                        unidad: normalizeUnitName(ing.unidad || material.unidad, material.unidadTipo)
+                    };
+                })
             }));
             state.productionBatches = Array.isArray(state.productionBatches)
                 ? state.productionBatches
                 : (state.productionBatches && typeof state.productionBatches === 'object' ? Object.values(state.productionBatches) : []);
             state.expenses = Array.isArray(state.expenses) ? state.expenses : [];
-            // Reconstruir el Set expandedRecipes desde el array guardado
+            // Reconstruir los Set de expansion desde el array guardado
             state.expandedRecipes = new Set(Array.isArray(state.expandedRecipes) ? state.expandedRecipes : []);
+            state.expandedMaterials = new Set(Array.isArray(state.expandedMaterials) ? state.expandedMaterials : []);
             updateUI();
             updateLanguage();
         }
 
         // Guardar datos en localStorage (base de datos local)
         function saveData() {
-            // Convertir el Set expandedRecipes a array para poder serializarlo
+            // Convertir Set a array para poder serializarlo
             const dataToSave = {
                 ...state,
-                expandedRecipes: Array.from(state.expandedRecipes)
+                expandedRecipes: Array.from(state.expandedRecipes),
+                expandedMaterials: Array.from(state.expandedMaterials)
             };
             localStorage.setItem('balloonsAppData', JSON.stringify(dataToSave));
             const t = uiTranslations[state.idioma] || uiTranslations.es;
@@ -1135,45 +1354,82 @@
             const t = uiTranslations[state.idioma] || uiTranslations.es;
 
             state.materials.forEach((mat, index) => {
-                const div = document.createElement('div');
+                const isExpanded = state.expandedMaterials.has(mat.id);
+                const card = document.createElement('div');
                 const unitOptions = getUnitOptions(mat.unidadTipo).map(unit => `<option value="${unit}" ${mat.unidad === unit ? 'selected' : ''}>${unit}</option>`).join('');
-                div.className = 'grid grid-cols-1 md:grid-cols-12 gap-2 mb-4 p-3 bg-amber-50 rounded items-end';
-                div.innerHTML = `
-                    <div class="md:col-span-3">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialConcept}:</label>
-                        <input class="input-field w-full" value="${mat.concepto}" onchange="updateMaterial(${index}, 'concepto', this.value)">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialQuantity}:</label>
-                        <input class="input-field w-full" type="number" value="${mat.cantidad}" onchange="updateMaterial(${index}, 'cantidad', this.value)">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialUnitType}:</label>
-                        <select class="input-field w-full" onchange="updateMaterial(${index}, 'unidadTipo', this.value)">
-                            <option value="peso" ${mat.unidadTipo === 'peso' ? 'selected' : ''}>Peso</option>
-                            <option value="volumen" ${mat.unidadTipo === 'volumen' ? 'selected' : ''}>Volumen</option>
-                            <option value="cantidad" ${mat.unidadTipo === 'cantidad' ? 'selected' : ''}>Cantidad</option>
-                        </select>
-                    </div>
-                    <div class="md:col-span-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialUnit}:</label>
-                        <select class="input-field w-full" onchange="updateMaterial(${index}, 'unidad', this.value)">
-                            ${unitOptions}
-                        </select>
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialUnitPrice}:</label>
-                        <input class="input-field w-full" type="number" step="0.01" value="${mat.precioUnitario}" onchange="updateMaterial(${index}, 'precioUnitario', this.value)">
-                    </div>
-                    <div class="md:col-span-1">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialSubtotal}:</label>
-                        <span class="px-3 py-2 bg-white border border-gray-300 rounded w-full inline-block text-center font-medium">${formatNumber(mat.subtotal)}</span>
-                    </div>
-                    <div class="md:col-span-1">
-                        <button class="bg-red-500 text-white px-2 py-2 rounded w-full h-10 flex items-center justify-center" onclick="removeMaterial(${index})">X</button>
-                    </div>
-                `;
-                list.appendChild(div);
+                card.className = isExpanded
+                    ? 'mb-4 p-4 bg-orange-50 rounded border-2 border-orange-400 shadow-md'
+                    : 'mb-4 p-4 bg-orange-50 rounded border border-orange-200 hover:border-orange-300 cursor-pointer transition-all';
+
+                if (!isExpanded) {
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between" onclick="toggleMaterialExpand(${mat.id})">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-xs font-semibold text-amber-700">Insumo #${index + 1}</span>
+                                    <h3 class="font-bold text-lg text-amber-900">${mat.concepto || 'Insumo sin nombre'}</h3>
+                                </div>
+                                <div class="mt-1 flex flex-wrap gap-4 text-sm text-gray-600">
+                                    <span><span class="font-medium">${t.materialQuantity}:</span> ${formatNumber(mat.cantidad)} ${mat.unidad || '-'}</span>
+                                    <span class="font-semibold text-amber-800">${t.materialSubtotal}: ${formatCurrency(mat.subtotal)}</span>
+                                    <span>${t.materialUnitPrice}: ${formatCurrency(mat.precioUnitario)}</span>
+                                </div>
+                            </div>
+                            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    `;
+                } else {
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-orange-300">
+                            <div class="text-xs font-semibold text-amber-700">Insumo #${index + 1}</div>
+                            <button class="text-amber-600 hover:text-amber-800 flex items-center gap-1" onclick="toggleMaterialExpand(${mat.id})">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                </svg>
+                                <span class="text-sm">Contraer</span>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end">
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialConcept}:</label>
+                                <input class="input-field w-full" value="${mat.concepto}" onchange="updateMaterial(${index}, 'concepto', this.value)">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialQuantity}:</label>
+                                <input class="input-field w-full" type="number" value="${mat.cantidad}" onchange="updateMaterial(${index}, 'cantidad', this.value)">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialUnitType}:</label>
+                                <select class="input-field w-full" onchange="updateMaterial(${index}, 'unidadTipo', this.value)">
+                                    <option value="peso" ${mat.unidadTipo === 'peso' ? 'selected' : ''}>Peso</option>
+                                    <option value="volumen" ${mat.unidadTipo === 'volumen' ? 'selected' : ''}>Volumen</option>
+                                    <option value="cantidad" ${mat.unidadTipo === 'cantidad' ? 'selected' : ''}>Cantidad</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialUnit}:</label>
+                                <select class="input-field w-full" onchange="updateMaterial(${index}, 'unidad', this.value)">
+                                    ${unitOptions}
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialSubtotal}:</label>
+                                <input class="input-field w-full" type="number" step="0.01" value="${mat.subtotal}" onchange="updateMaterial(${index}, 'subtotal', this.value)">
+                            </div>
+                            <div class="md:col-span-1">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">${t.materialUnitPrice}:</label>
+                                <span class="px-3 py-2 bg-white border border-gray-300 rounded w-full inline-block text-center font-medium">${formatNumber(mat.precioUnitario)}</span>
+                            </div>
+                            <div class="md:col-span-1">
+                                <button class="bg-red-500 text-white px-2 py-2 rounded w-full h-10 flex items-center justify-center" onclick="removeMaterial(${index})">X</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                list.appendChild(card);
             });
         }
 
@@ -1208,7 +1464,7 @@
                     const material = getMaterialById(ing.materialId);
                     if (!material) return;
 
-                    const qty = (parseFloat(ing.cantidad) || 0) * lotes;
+                    const qty = getIngredientBaseQuantity(ing, material) * lotes;
                     if (qty <= 0) return;
 
                     if (!requirementsByMaterial[material.id]) {
@@ -1237,7 +1493,8 @@
             return recipe.ingredientes.reduce((sum, ing) => {
                 const material = getMaterialById(ing.materialId);
                 if (!material) return sum;
-                return sum + ((parseFloat(ing.cantidad) || 0) * (parseFloat(material.precioUnitario) || 0));
+                const qtyInBaseUnit = getIngredientBaseQuantity(ing, material);
+                return sum + (qtyInBaseUnit * (parseFloat(material.precioUnitario) || 0));
             }, 0);
         }
 
@@ -1281,8 +1538,11 @@
                     const ingredientsHtml = recipe.ingredientes.map((ing, ingIndex) => {
                         const options = state.materials.map(mat => `<option value="${mat.id}" ${Number(ing.materialId) === mat.id ? 'selected' : ''}>${mat.concepto} (${mat.unidad || 'unidad'})</option>`).join('');
                         const selectedMaterial = getMaterialById(ing.materialId);
+                        const unitOptions = selectedMaterial
+                            ? getUnitOptions(selectedMaterial.unidadTipo).map(unit => `<option value="${unit}" ${normalizeUnitName(ing.unidad || selectedMaterial.unidad, selectedMaterial.unidadTipo) === unit ? 'selected' : ''}>${unit}</option>`).join('')
+                            : '<option value="">-</option>';
                         return `
-                            <div class="grid grid-cols-1 md:grid-cols-6 gap-2 mt-2">
+                            <div class="grid grid-cols-1 md:grid-cols-7 gap-2 mt-2">
                                 <div class="md:col-span-3">
                                     <select class="input-field w-full" onchange="updateRecipeIngredient(${recipeIndex}, ${ingIndex}, 'materialId', this.value)">
                                         <option value="">Selecciona insumo</option>
@@ -1292,8 +1552,12 @@
                                 <div class="md:col-span-2">
                                     <input class="input-field w-full" type="number" step="0.01" value="${ing.cantidad}" onchange="updateRecipeIngredient(${recipeIndex}, ${ingIndex}, 'cantidad', this.value)" placeholder="${t.quantity}">
                                 </div>
+                                <div class="md:col-span-1">
+                                    <select class="input-field w-full" ${selectedMaterial ? '' : 'disabled'} onchange="updateRecipeIngredient(${recipeIndex}, ${ingIndex}, 'unidad', this.value)">
+                                        ${unitOptions}
+                                    </select>
+                                </div>
                                 <div class="md:col-span-1 flex items-center gap-2">
-                                    <span class="text-sm text-gray-600">${selectedMaterial ? selectedMaterial.unidad : '-'}</span>
                                     <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="removeRecipeIngredient(${recipeIndex}, ${ingIndex})">X</button>
                                 </div>
                             </div>
@@ -1355,7 +1619,7 @@
                     consumption = recipe.ingredientes.map(ing => {
                         const mat = getMaterialById(ing.materialId);
                         if (!mat) return null;
-                        const qty = (parseFloat(ing.cantidad) || 0) * (parseFloat(batch.cantidadLotes) || 0);
+                        const qty = getIngredientBaseQuantity(ing, mat) * (parseFloat(batch.cantidadLotes) || 0);
                         return `${mat.concepto}: ${formatNumber(qty)} ${mat.unidad}`;
                     }).filter(Boolean).join(' | ');
                 }
@@ -1539,7 +1803,7 @@
                 .map((ing) => {
                     const material = getMaterialById(ing.materialId);
                     if (!material) return null;
-                    const qtyBase = parseFloat(ing.cantidad) || 0;
+                    const qtyBase = getIngredientBaseQuantity(ing, material);
                     const qtyTotal = qtyBase * lotes;
                     return {
                         nombre: material.concepto,
@@ -1629,15 +1893,18 @@
 
         // Actualizar un material específico en el estado
         function updateMaterial(index, field, value) {
-            if (field === 'cantidad' || field === 'precioUnitario') {
+            if (field === 'cantidad' || field === 'subtotal') {
                 value = parseFloat(value) || 0;
             }
             state.materials[index][field] = value;
             if (field === 'unidadTipo') {
                 state.materials[index].unidad = getUnitOptions(value)[0];
             }
-            if (field === 'cantidad' || field === 'precioUnitario') {
-                state.materials[index].subtotal = state.materials[index].cantidad * state.materials[index].precioUnitario;
+            if (field === 'cantidad' || field === 'subtotal') {
+                const material = state.materials[index];
+                material.precioUnitario = material.cantidad > 0
+                    ? (material.subtotal / material.cantidad)
+                    : 0;
             }
             renderMaterials();
             renderRecipes();
@@ -1647,11 +1914,22 @@
 
         // Eliminar un material de la lista
         function removeMaterial(index) {
+            const materialId = state.materials[index].id;
+            state.expandedMaterials.delete(materialId);
             state.materials.splice(index, 1);
             renderMaterials();
             renderRecipes();
             renderProductionBatches();
             calculateResults();
+        }
+
+        function toggleMaterialExpand(materialId) {
+            if (state.expandedMaterials.has(materialId)) {
+                state.expandedMaterials.delete(materialId);
+            } else {
+                state.expandedMaterials.add(materialId);
+            }
+            renderMaterials();
         }
 
         function updateRecipe(index, field, value) {
@@ -1665,7 +1943,7 @@
         }
 
         function addRecipeIngredient(recipeIndex) {
-            state.recipes[recipeIndex].ingredientes.push({ materialId: '', cantidad: 0 });
+            state.recipes[recipeIndex].ingredientes.push({ materialId: '', cantidad: 0, unidad: '' });
             renderRecipes();
             renderProductionBatches();
             calculateResults();
@@ -1676,6 +1954,21 @@
                 value = parseFloat(value) || 0;
             }
             state.recipes[recipeIndex].ingredientes[ingredientIndex][field] = value;
+
+            if (field === 'materialId') {
+                const selectedMaterial = getMaterialById(value);
+                state.recipes[recipeIndex].ingredientes[ingredientIndex].unidad = selectedMaterial
+                    ? normalizeUnitName(selectedMaterial.unidad, selectedMaterial.unidadTipo)
+                    : '';
+            }
+
+            if (field === 'unidad') {
+                const selectedMaterial = getMaterialById(state.recipes[recipeIndex].ingredientes[ingredientIndex].materialId);
+                if (selectedMaterial) {
+                    state.recipes[recipeIndex].ingredientes[ingredientIndex].unidad = normalizeUnitName(value, selectedMaterial.unidadTipo);
+                }
+            }
+
             renderRecipes();
             renderProductionBatches();
             calculateResults();
@@ -2023,13 +2316,53 @@
         // Botón para guardar datos
         document.getElementById('saveDataBtn').addEventListener('click', saveData);
 
+        const mobileSidebar = document.getElementById('mobileSidebar');
+        const mobileSidebarOverlay = document.getElementById('mobileSidebarOverlay');
+        const currentTabLabel = document.getElementById('currentTabLabel');
+
+        function setSidebarOpen(isOpen) {
+            if (!mobileSidebar || !mobileSidebarOverlay) return;
+            mobileSidebar.classList.toggle('open', isOpen);
+            mobileSidebarOverlay.classList.toggle('hidden', !isOpen);
+        }
+
+        function activateTab(tabId) {
+            document.querySelectorAll('.tab-btn').forEach((b) => {
+                b.classList.remove('active', 'border-b-2', 'border-amber-600', 'text-amber-700', 'bg-amber-50');
+            });
+            document.querySelectorAll('.tab-content').forEach((c) => c.classList.remove('active'));
+
+            document.querySelectorAll(`.tab-btn[data-tab="${tabId}"]`).forEach((btn) => {
+                btn.classList.add('active', 'text-amber-700');
+                if (btn.closest('#mobileSidebar')) {
+                    btn.classList.add('bg-amber-50');
+                } else {
+                    btn.classList.add('border-b-2', 'border-amber-600');
+                }
+            });
+
+            const activeContent = document.getElementById(tabId);
+            if (activeContent) {
+                activeContent.classList.add('active');
+            }
+
+            const activeLabelSource = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+            if (currentTabLabel && activeLabelSource) {
+                currentTabLabel.textContent = activeLabelSource.textContent.trim();
+            }
+        }
+
+        document.getElementById('openSidebarBtn').addEventListener('click', () => setSidebarOpen(true));
+        document.getElementById('closeSidebarBtn').addEventListener('click', () => setSidebarOpen(false));
+        mobileSidebarOverlay.addEventListener('click', () => setSidebarOpen(false));
+
         // Cambios en las tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'border-b-2', 'border-amber-600', 'text-amber-700'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active', 'border-b-2', 'border-amber-600', 'text-amber-700');
-                document.getElementById(btn.dataset.tab).classList.add('active');
+                activateTab(btn.dataset.tab);
+                if (btn.closest('#mobileSidebar')) {
+                    setSidebarOpen(false);
+                }
             });
         });
 
@@ -2111,7 +2444,9 @@
 
         // Botones para agregar materiales y gastos
         document.getElementById('addMaterial').addEventListener('click', () => {
-            state.materials.push({ id: Date.now(), concepto: 'Nuevo insumo', cantidad: 1, unidadTipo: 'cantidad', unidad: 'unidad', precioUnitario: 0, subtotal: 0 });
+            const materialId = Date.now();
+            state.materials.push({ id: materialId, concepto: 'Nuevo insumo', cantidad: 1, unidadTipo: 'cantidad', unidad: 'unidad (und)', subtotal: 0, precioUnitario: 0 });
+            state.expandedMaterials.add(materialId);
             renderMaterials();
             renderRecipes();
             renderProductionBatches();
@@ -2120,13 +2455,14 @@
 
         document.getElementById('addRecipe').addEventListener('click', () => {
             const defaultMaterialId = state.materials.length ? state.materials[0].id : '';
+            const defaultMaterial = getMaterialById(defaultMaterialId);
             const newRecipeId = getNextId();
             state.recipes.push({
                 id: newRecipeId,
                 nombre: 'Nueva receta',
                 descripcion: '',
                 rendimiento: 1,
-                ingredientes: [{ materialId: defaultMaterialId, cantidad: 0 }]
+                ingredientes: [{ materialId: defaultMaterialId, cantidad: 0, unidad: defaultMaterial ? defaultMaterial.unidad : '' }]
             });
             // Expandir automáticamente la nueva receta
             state.expandedRecipes.add(newRecipeId);
