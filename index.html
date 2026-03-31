@@ -215,6 +215,16 @@
                         <option value="GBP">GBP</option>
                     </select>
                 </div>
+                <div class="mt-6 p-4 rounded-lg border border-amber-200 bg-amber-50">
+                    <h3 class="text-lg font-semibold text-amber-800">Respaldo de Datos</h3>
+                    <p class="text-sm text-amber-900 mt-1">Descarga una copia completa de la informacion guardada y restaura desde un archivo de respaldo cuando lo necesites.</p>
+                    <div class="mt-4 flex flex-col sm:flex-row gap-3">
+                        <button id="downloadBackupBtn" class="btn-primary px-4 py-2 rounded">Descargar Backup</button>
+                        <button id="importBackupBtn" class="bg-white text-amber-700 border border-amber-600 px-4 py-2 rounded font-semibold hover:bg-amber-50">Cargar Respaldo</button>
+                        <input id="backupFileInput" type="file" accept="application/json" class="hidden">
+                    </div>
+                    <p class="text-xs text-amber-800 mt-2">Al restaurar, se reemplazaran los datos actuales por los datos del archivo.</p>
+                </div>
             </div>
         </div>
 
@@ -1200,6 +1210,12 @@
             if (saved) {
                 state = { ...state, ...JSON.parse(saved) };
             }
+            normalizeLoadedState();
+            updateUI();
+            updateLanguage();
+        }
+
+        function normalizeLoadedState() {
             state.materials = (Array.isArray(state.materials) ? state.materials : []).map((mat) => {
                 const unitType = mat.unidadTipo || 'cantidad';
                 const unitOptions = getUnitOptions(unitType);
@@ -1272,23 +1288,85 @@
             if (!state.activeClientId && state.clients.length > 0) {
                 state.activeClientId = state.clients[0].id;
             }
-            updateUI();
-            updateLanguage();
         }
 
-        // Guardar datos en localStorage (base de datos local)
-        function saveData() {
-            // Convertir Set a array para poder serializarlo
-            const dataToSave = {
+        function getSerializableState() {
+            return {
                 ...state,
                 expandedRecipes: Array.from(state.expandedRecipes),
                 expandedMaterials: Array.from(state.expandedMaterials),
                 expandedClients: Array.from(state.expandedClients)
             };
+        }
+
+        // Guardar datos en localStorage (base de datos local)
+        function saveData() {
+            const dataToSave = getSerializableState();
             localStorage.setItem('balloonsAppData', JSON.stringify(dataToSave));
             const t = uiTranslations[state.idioma] || uiTranslations.es;
             showMessage(t.dataSaved, 'success');
             console.log('Datos guardados en localStorage:', state);
+        }
+
+        function downloadBackup() {
+            try {
+                const backupData = {
+                    app: 'TartaBackup',
+                    version: 1,
+                    exportedAt: new Date().toISOString(),
+                    data: getSerializableState()
+                };
+
+                const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                const datePart = new Date().toISOString().slice(0, 10);
+
+                link.href = url;
+                link.download = `tarta-backup-${datePart}.json`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(url);
+
+                showMessage('Backup descargado correctamente.', 'success');
+            } catch (error) {
+                console.error('Error al descargar backup:', error);
+                showMessage('No se pudo descargar el backup.', 'error');
+            }
+        }
+
+        function importBackupFromFile(file) {
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    const payload = parsed && typeof parsed === 'object' && parsed.data ? parsed.data : parsed;
+
+                    if (!payload || typeof payload !== 'object') {
+                        throw new Error('Archivo de respaldo invalido.');
+                    }
+
+                    state = { ...state, ...payload };
+                    normalizeLoadedState();
+                    updateUI();
+                    updateLanguage();
+
+                    localStorage.setItem('balloonsAppData', JSON.stringify(getSerializableState()));
+                    showMessage('Respaldo cargado correctamente.', 'success');
+                } catch (error) {
+                    console.error('Error al importar backup:', error);
+                    showMessage('El archivo de respaldo no es valido.', 'error');
+                }
+            };
+
+            reader.onerror = () => {
+                showMessage('No se pudo leer el archivo seleccionado.', 'error');
+            };
+
+            reader.readAsText(file);
         }
 
         // Función de debug para verificar localStorage
@@ -2536,6 +2614,31 @@
         document.getElementById('moneda').addEventListener('change', (e) => {
             state.moneda = e.target.value;
         });
+
+        const downloadBackupBtn = document.getElementById('downloadBackupBtn');
+        const importBackupBtn = document.getElementById('importBackupBtn');
+        const backupFileInput = document.getElementById('backupFileInput');
+
+        if (downloadBackupBtn) {
+            downloadBackupBtn.addEventListener('click', downloadBackup);
+        }
+
+        if (importBackupBtn && backupFileInput) {
+            importBackupBtn.addEventListener('click', () => backupFileInput.click());
+            backupFileInput.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+
+                const confirmed = window.confirm('Esta accion reemplazara los datos actuales por los del respaldo. Deseas continuar?');
+                if (!confirmed) {
+                    backupFileInput.value = '';
+                    return;
+                }
+
+                importBackupFromFile(file);
+                backupFileInput.value = '';
+            });
+        }
 
 
         // Botón para agregar cliente
