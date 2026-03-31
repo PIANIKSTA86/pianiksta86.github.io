@@ -139,7 +139,6 @@
                 <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="produccion">Produccion</button>
                 <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="gastos">Gastos Operativos</button>
                 <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="rentabilidad">Rentabilidad</button>
-                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="pdf">PDF</button>
                 <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="ayuda">Ayuda</button>
             </div>
         </div>
@@ -162,7 +161,6 @@
                 <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="produccion">Produccion</button>
                 <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="gastos">Gastos Operativos</button>
                 <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="rentabilidad">Rentabilidad</button>
-                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="pdf">PDF</button>
                 <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="ayuda">Ayuda</button>
             </nav>
         </aside>
@@ -222,45 +220,10 @@
 
         <div id="cliente" class="tab-content">
             <div class="card p-6">
-                <h2 class="text-xl font-bold mb-4">Información del Cliente</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label for="clienteNombre" class="block text-sm font-medium mb-1">Nombre</label>
-                        <input id="clienteNombre" class="input-field w-full">
-                    </div>
-                    <div>
-                        <label for="tipoServicio" class="block text-sm font-medium mb-1">Tipo de Servicio</label>
-                        <input id="tipoServicio" class="input-field w-full">
-                    </div>
-                    <div>
-                        <label for="fechaCotizacion" class="block text-sm font-medium mb-1">Fecha de Cotización</label>
-                        <input id="fechaCotizacion" type="date" class="input-field w-full">
-                    </div>
-                    <div>
-                        <label for="fechaDecoracion" class="block text-sm font-medium mb-1">Fecha de Entrega</label>
-                        <input id="fechaDecoracion" type="date" class="input-field w-full">
-                    </div>
-                    <div>
-                        <label for="lugarDecoracion" class="block text-sm font-medium mb-1">Lugar de Entrega</label>
-                        <input id="lugarDecoracion" class="input-field w-full">
-                    </div>
-                    <div>
-                        <label for="clienteEmail" class="block text-sm font-medium mb-1">Email</label>
-                        <input id="clienteEmail" type="email" class="input-field w-full">
-                    </div>
-                    <div>
-                        <label for="contacto" class="block text-sm font-medium mb-1">Contacto</label>
-                        <input id="contacto" class="input-field w-full">
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <label for="descripcion" class="block text-sm font-medium mb-1">Descripción</label>
-                    <textarea id="descripcion" class="input-field w-full" rows="3"></textarea>
-                </div>
-                <div class="mt-4">
-                    <label for="notas" class="block text-sm font-medium mb-1">Notas</label>
-                    <textarea id="notas" class="input-field w-full" rows="3"></textarea>
-                </div>
+                <h2 class="text-xl font-bold mb-4">Clientes</h2>
+                <button id="addClient" class="btn-primary px-4 py-2 rounded mb-4">Agregar Cliente</button>
+                <p class="text-sm text-amber-800 mb-3">Gestiona la informacion de multiples clientes. El cliente marcado como <strong>Activo</strong> se usara en el PDF y la cotizacion.</p>
+                <div id="clientsList"></div>
             </div>
         </div>
 
@@ -358,7 +321,7 @@
                                     <th id="profitPctTh">% Rentabilidad</th>
                                     <th id="totalCostsTh">Total de Costos</th>
                                     <th id="myProfitTh">Mi Ganancia</th>
-                                    <th id="decorationValueTh">Valor Decoracion</th>
+                                    <th id="decorationValueTh">Valor Preparacion</th>
                                     <th id="additionalExpensesTh">Gastos Adicionales</th>
                                     <th id="totalWithoutTaxTh">Total sin Impuesto</th>
                                 </tr>
@@ -436,22 +399,9 @@
                     <h3 id="totalWithTaxTitle" class="text-xl font-bold mb-4">Total por cobrar</h3>
                     <div class="text-2xl md:text-3xl font-extrabold" id="totalConImpuestoGrande"></div>
                 </div>
-            </div>
-        </div>
-
-        <div id="pdf" class="tab-content">
-            <div class="card p-6">
-                <h2 class="text-xl font-bold mb-4">Generar PDF</h2>
-                <button id="generatePDF" class="btn-primary px-4 py-2 rounded">Generar y Descargar PDF</button>
-                <div id="pdfStatus" class="mt-4"></div>
-                <hr class="my-4">
-           <!--     <h3 class="text-lg font-semibold mb-2">Debug localStorage</h3>
-                <div class="flex gap-2 flex-wrap">
-                    <button id="debugBtn" class="btn-secondary px-3 py-2 rounded text-sm">Verificar Datos</button>
-                    <button id="testDataBtn" class="btn-secondary px-3 py-2 rounded text-sm">Cargar Datos de Prueba</button>
-                    <button id="clearDataBtn" class="btn-secondary px-3 py-2 rounded text-sm">Limpiar Datos</button>
+                <div class="mt-6 flex justify-center">
+                    <button id="generatePDFFromRentability" class="bg-green-600 hover:bg-green-700 text-white w-full py-4 rounded-lg font-bold text-lg shadow-md" onclick="generatePDFFromBatch()">Generar PDF Cotización</button>
                 </div>
-                <div id="debugStatus" class="mt-2 text-sm"></div> -->
             </div>
         </div>
 
@@ -463,7 +413,7 @@
                     <p class="mb-4">Configura la informacion de tu negocio de panaderia o reposteria: nombre comercial, contacto, logo y moneda de trabajo.</p>
 
                     <h3 class="text-lg font-semibold mb-2">2. Cliente</h3>
-                    <p class="mb-4">Ingresa los datos del cliente: Nombre, Tipo de Servicio, Fechas de Cotización y Decoración, Lugar de Decoración, Email, Contacto, Descripción del servicio y Notas adicionales.</p>
+                    <p class="mb-4">Ingresa los datos del cliente: Nombre, Tipo de Servicio, Fechas de Cotización y Preparación, Lugar de Preparación, Email, Contacto, Descripción del servicio y Notas adicionales.</p>
 
                     <h3 class="text-lg font-semibold mb-2">3. Materiales</h3>
                     <p class="mb-4">Registra tus insumos con valor total, cantidad y unidad de medida (peso, volumen o cantidad). El sistema calcula automaticamente el costo por unidad para usarlo en recetas.</p>
@@ -479,9 +429,6 @@
 
                     <h3 class="text-lg font-semibold mb-2">7. Rentabilidad</h3>
                     <p class="mb-4">Configura mano de obra, rentabilidad e impuestos para obtener un precio final de venta competitivo y sostenible.</p>
-
-                    <h3 class="text-lg font-semibold mb-2">8. PDF</h3>
-                    <p class="mb-4">Genera una cotizacion profesional en PDF con datos de cliente, costos, rentabilidad e impuestos para compartir con tus compradores.</p>
 
                     <h3 class="text-lg font-semibold mb-2">Guardar Datos</h3>
                     <p class="mb-4">Usa el botón "Guardar Datos" en la parte superior para almacenar toda la información localmente en tu navegador. Los datos se mantendrán entre sesiones.</p>
@@ -559,7 +506,13 @@
             // Control de expansion de recetas
             expandedRecipes: new Set(),
             // Control de expansion de insumos
-            expandedMaterials: new Set()
+            expandedMaterials: new Set(),
+            // Lista de clientes
+            clients: [],
+            // ID del cliente activo para PDF y cotizacion
+            activeClientId: null,
+            // Control de expansion de clientes
+            expandedClients: new Set()
         };
 
         const measurementUnits = {
@@ -715,7 +668,7 @@
                 profitPct: '% Rentabilidad',
                 totalCosts: 'Total de Costos',
                 myProfit: 'Mi Ganancia',
-                decorationValue: 'Valor Decoración',
+                decorationValue: 'Valor Preparación',
                 additionalExpenses: 'Gastos Adicionales',
                 totalWithoutTax: 'Total sin Impuesto',
                 profit: 'Rentabilidad',
@@ -831,7 +784,7 @@
                 profitPct: '% Profitability',
                 totalCosts: 'Total Costs',
                 myProfit: 'My Profit',
-                decorationValue: 'Decoration Value',
+                    decorationValue: 'Preparation Value',
                 additionalExpenses: 'Additional Expenses',
                 totalWithoutTax: 'Total without Tax',
                 profit: 'Profitability',
@@ -947,7 +900,7 @@
                 profitPct: '% Rentabilité',
                 totalCosts: 'Coûts Totaux',
                 myProfit: 'Mon Profit',
-                decorationValue: 'Valeur de la Décoration',
+                    decorationValue: 'Valeur de la Préparation',
                 additionalExpenses: 'Dépenses Additionnelles',
                 totalWithoutTax: 'Total sans Impôt',
                 profit: 'Rentabilité',
@@ -1003,7 +956,6 @@
             setTabLabel('produccion', t.productionTab);
             setTabLabel('gastos', t.expensesTab);
             setTabLabel('rentabilidad', t.profitabilityTab);
-            setTabLabel('pdf', t.pdfTab);
             setTabLabel('ayuda', t.helpTab);
 
             const activeTabBtn = document.querySelector('.tab-btn.active');
@@ -1085,8 +1037,6 @@
                 totalTaxLabel.textContent = t.totalWithTax;
             }
             document.getElementById('totalWithTaxTitle').textContent = t.totalWithTax;
-            // PDF tab
-            document.getElementById('generatePDF').textContent = t.generatePDF;
 
             // Re-renderizar vistas dinamicas con las nuevas traducciones
             renderMaterials();
@@ -1094,6 +1044,155 @@
             renderProductionBatches();
             renderExpenses();
         }
+
+        // Obtener el cliente activo (para PDF y cotizacion)
+        function getActiveClient() {
+                        if (state.activeClientId) {
+                            const found = state.clients.find(c => c.id === state.activeClientId);
+                            if (found) return found;
+                        }
+                        return state.clients[0] || {};
+                    }
+
+                    // Renderizar la lista de clientes en la interfaz
+                    function renderClients() {
+                        const list = document.getElementById('clientsList');
+                        if (!list) return;
+                        list.innerHTML = '';
+                        const t = uiTranslations[state.idioma] || uiTranslations.es;
+
+                        if (state.clients.length === 0) {
+                            list.innerHTML = '<p class="text-gray-500 text-sm">No hay clientes. Haz clic en "Agregar Cliente" para comenzar.</p>';
+                            return;
+                        }
+
+                        const grid = document.createElement('div');
+                        grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4';
+
+                        state.clients.forEach((client, index) => {
+                            const isExpanded = state.expandedClients.has(client.id);
+                            const isActive = client.id === state.activeClientId;
+                            const card = document.createElement('div');
+
+                            if (!isExpanded) {
+                                card.className = isActive
+                                    ? 'p-4 rounded border-2 border-amber-600 bg-amber-50 shadow-md'
+                                    : 'p-4 bg-orange-50 rounded border border-orange-200 hover:border-orange-300 cursor-pointer transition-all';
+                                card.innerHTML = `
+                                    <div class="flex items-start justify-between gap-2">
+                                        <div class="flex-1 min-w-0" onclick="toggleClientExpand(${client.id})">
+                                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                                ${isActive ? '<span class="text-xs bg-amber-600 text-white px-2 py-0.5 rounded">Activo</span>' : ''}
+                                                <span class="text-xs font-semibold text-amber-700">Cliente #${index + 1}</span>
+                                            </div>
+                                            <h3 class="font-bold text-amber-900 truncate">${client.nombre || 'Cliente sin nombre'}</h3>
+                                            <div class="mt-1 text-sm text-gray-600">
+                                                <div class="truncate">${client.tipoServicio || '-'}</div>
+                                                <div>${client.fechaCotizacion || '-'}</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex flex-col items-end gap-2 flex-shrink-0">
+                                            ${!isActive ? `<button class="text-xs btn-primary px-2 py-1 rounded whitespace-nowrap" onclick="setActiveClient(${client.id})">Usar</button>` : ''}
+                                            <svg class="w-4 h-4 text-amber-600 cursor-pointer" onclick="toggleClientExpand(${client.id})" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                `;
+                            } else {
+                                card.className = 'col-span-full p-4 bg-orange-50 rounded border-2 border-orange-400 shadow-md';
+                                card.innerHTML = `
+                                    <div class="flex items-center justify-between mb-3 pb-2 border-b border-orange-300">
+                                        <div class="flex items-center gap-2">
+                                            <div class="text-xs font-semibold text-amber-700">Cliente #${index + 1}</div>
+                                            ${isActive
+                                                ? '<span class="text-xs bg-amber-600 text-white px-2 py-0.5 rounded">Activo para PDF</span>'
+                                                : `<button class="text-xs btn-primary px-2 py-1 rounded" onclick="setActiveClient(${client.id})">Usar para PDF</button>`}
+                                        </div>
+                                        <button class="text-amber-600 hover:text-amber-800 flex items-center gap-1" onclick="toggleClientExpand(${client.id})">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
+                                            </svg>
+                                            <span class="text-sm">Contraer</span>
+                                        </button>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">${t.clientName}</label>
+                                            <input class="input-field w-full" value="${(client.nombre || '').replace(/"/g, '&quot;')}" onchange="updateClient(${index}, 'nombre', this.value)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">${t.serviceType}</label>
+                                            <input class="input-field w-full" value="${(client.tipoServicio || '').replace(/"/g, '&quot;')}" onchange="updateClient(${index}, 'tipoServicio', this.value)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">${t.quotationDate}</label>
+                                            <input type="date" class="input-field w-full" value="${client.fechaCotizacion || ''}" onchange="updateClient(${index}, 'fechaCotizacion', this.value)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">${t.decorationDate}</label>
+                                            <input type="date" class="input-field w-full" value="${client.fechaDecoracion || ''}" onchange="updateClient(${index}, 'fechaDecoracion', this.value)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">${t.decorationPlace}</label>
+                                            <input class="input-field w-full" value="${(client.lugarDecoracion || '').replace(/"/g, '&quot;')}" onchange="updateClient(${index}, 'lugarDecoracion', this.value)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">${t.clientEmail}</label>
+                                            <input type="email" class="input-field w-full" value="${(client.email || '').replace(/"/g, '&quot;')}" onchange="updateClient(${index}, 'email', this.value)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium mb-1">${t.contact}</label>
+                                            <input class="input-field w-full" value="${(client.contacto || '').replace(/"/g, '&quot;')}" onchange="updateClient(${index}, 'contacto', this.value)">
+                                        </div>
+                                    </div>
+                                    <div class="mt-4">
+                                        <label class="block text-sm font-medium mb-1">${t.description}</label>
+                                        <textarea class="input-field w-full" rows="3" onchange="updateClient(${index}, 'descripcion', this.value)">${client.descripcion || ''}</textarea>
+                                    </div>
+                                    <div class="mt-4">
+                                        <label class="block text-sm font-medium mb-1">${t.notes}</label>
+                                        <textarea class="input-field w-full" rows="3" onchange="updateClient(${index}, 'notas', this.value)">${client.notas || ''}</textarea>
+                                    </div>
+                                    <div class="mt-4 flex justify-end">
+                                        <button class="bg-red-600 text-white px-3 py-2 rounded" onclick="removeClient(${index})">Eliminar Cliente</button>
+                                    </div>
+                                `;
+                            }
+                            grid.appendChild(card);
+                        });
+                        list.appendChild(grid);
+                    }
+
+                    function toggleClientExpand(clientId) {
+                        if (state.expandedClients.has(clientId)) {
+                            state.expandedClients.delete(clientId);
+                        } else {
+                            state.expandedClients.add(clientId);
+                        }
+                        renderClients();
+                    }
+
+                    function setActiveClient(clientId) {
+                        state.activeClientId = clientId;
+                        renderClients();
+                    }
+
+                    function updateClient(index, field, value) {
+                        if (state.clients[index]) {
+                            state.clients[index][field] = value;
+                        }
+                    }
+
+                    function removeClient(index) {
+                        const clientId = state.clients[index].id;
+                        state.expandedClients.delete(clientId);
+                        state.clients.splice(index, 1);
+                        if (state.activeClientId === clientId) {
+                            state.activeClientId = state.clients.length > 0 ? state.clients[0].id : null;
+                        }
+                        renderClients();
+                    }
 
         // Cargar datos desde localStorage al iniciar la aplicación
         function loadData() {
@@ -1147,10 +1246,32 @@
             state.productionBatches = Array.isArray(state.productionBatches)
                 ? state.productionBatches
                 : (state.productionBatches && typeof state.productionBatches === 'object' ? Object.values(state.productionBatches) : []);
+            // Migrar lotes antiguos que tenían "estado" a "clientId"
+            state.productionBatches = state.productionBatches.map(batch => {
+                if (batch.estado && !batch.clientId) {
+                    // Lote viejo - convertir estado a clientId (usar primer cliente disponible)
+                    return { ...batch, clientId: state.clients.length ? state.clients[0].id : null };
+                }
+                return batch;
+            });
             state.expenses = Array.isArray(state.expenses) ? state.expenses : [];
             // Reconstruir los Set de expansion desde el array guardado
             state.expandedRecipes = new Set(Array.isArray(state.expandedRecipes) ? state.expandedRecipes : []);
             state.expandedMaterials = new Set(Array.isArray(state.expandedMaterials) ? state.expandedMaterials : []);
+            state.expandedClients = new Set(Array.isArray(state.expandedClients) ? state.expandedClients : []);
+            // Migrar clientData antiguo al nuevo array de clientes
+            if (!Array.isArray(state.clients) || state.clients.length === 0) {
+                state.clients = [];
+                const cd = state.clientData;
+                if (cd && Object.values(cd).some(v => v)) {
+                    const migratedId = Date.now();
+                    state.clients = [{ id: migratedId, ...cd }];
+                    state.activeClientId = migratedId;
+                }
+            }
+            if (!state.activeClientId && state.clients.length > 0) {
+                state.activeClientId = state.clients[0].id;
+            }
             updateUI();
             updateLanguage();
         }
@@ -1161,7 +1282,8 @@
             const dataToSave = {
                 ...state,
                 expandedRecipes: Array.from(state.expandedRecipes),
-                expandedMaterials: Array.from(state.expandedMaterials)
+                expandedMaterials: Array.from(state.expandedMaterials),
+                expandedClients: Array.from(state.expandedClients)
             };
             localStorage.setItem('balloonsAppData', JSON.stringify(dataToSave));
             const t = uiTranslations[state.idioma] || uiTranslations.es;
@@ -1315,16 +1437,6 @@
             document.getElementById('idioma').value = state.idioma;
             document.getElementById('moneda').value = state.moneda;
 
-            // Datos del cliente
-            document.getElementById('clienteNombre').value = state.clientData.nombre;
-            document.getElementById('tipoServicio').value = state.clientData.tipoServicio;
-            document.getElementById('descripcion').value = state.clientData.descripcion;
-            document.getElementById('fechaDecoracion').value = state.clientData.fechaDecoracion;
-            document.getElementById('lugarDecoracion').value = state.clientData.lugarDecoracion;
-            document.getElementById('clienteEmail').value = state.clientData.email;
-            document.getElementById('contacto').value = state.clientData.contacto;
-            document.getElementById('notas').value = state.clientData.notas;
-            document.getElementById('fechaCotizacion').value = state.clientData.fechaCotizacion;
 
             // Parámetros de cálculo
             document.getElementById('manoObraPctInput').value = state.calculations.manoObraPct;
@@ -1340,6 +1452,7 @@
             document.getElementById('asistente3').value = state.calculations.asistente3;
             document.getElementById('asistente4').value = state.calculations.asistente4;
 
+            renderClients();
             renderMaterials();
             renderRecipes();
             renderProductionBatches();
@@ -1353,13 +1466,16 @@
             list.innerHTML = '';
             const t = uiTranslations[state.idioma] || uiTranslations.es;
 
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4';
+
             state.materials.forEach((mat, index) => {
                 const isExpanded = state.expandedMaterials.has(mat.id);
                 const card = document.createElement('div');
                 const unitOptions = getUnitOptions(mat.unidadTipo).map(unit => `<option value="${unit}" ${mat.unidad === unit ? 'selected' : ''}>${unit}</option>`).join('');
                 card.className = isExpanded
-                    ? 'mb-4 p-4 bg-orange-50 rounded border-2 border-orange-400 shadow-md'
-                    : 'mb-4 p-4 bg-orange-50 rounded border border-orange-200 hover:border-orange-300 cursor-pointer transition-all';
+                    ? 'col-span-full p-4 bg-orange-50 rounded border-2 border-orange-400 shadow-md'
+                    : 'p-4 bg-orange-50 rounded border border-orange-200 hover:border-orange-300 cursor-pointer transition-all';
 
                 if (!isExpanded) {
                     card.innerHTML = `
@@ -1429,8 +1545,9 @@
                     `;
                 }
 
-                list.appendChild(card);
+                grid.appendChild(card);
             });
+            list.appendChild(grid);
         }
 
         function getUnitOptions(unitType) {
@@ -1504,10 +1621,13 @@
             list.innerHTML = '';
             const t = uiTranslations[state.idioma] || uiTranslations.es;
 
+            const grid = document.createElement('div');
+            grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4';
+
             state.recipes.forEach((recipe, recipeIndex) => {
                 const isExpanded = state.expandedRecipes.has(recipe.id);
                 const card = document.createElement('div');
-                card.className = isExpanded ? 'mb-4 p-4 bg-orange-50 rounded border-2 border-orange-400 shadow-md' : 'mb-4 p-4 bg-orange-50 rounded border border-orange-200 hover:border-orange-300 cursor-pointer transition-all';
+                card.className = isExpanded ? 'col-span-full p-4 bg-orange-50 rounded border-2 border-orange-400 shadow-md' : 'p-4 bg-orange-50 rounded border border-orange-200 hover:border-orange-300 cursor-pointer transition-all';
 
                 if (!isExpanded) {
                     // Vista compacta
@@ -1599,8 +1719,9 @@
                         <div class="mt-3 text-right font-semibold text-amber-800">${t.recipeCost}: ${formatCurrency(calculateRecipeCost(recipe))}</div>
                     `;
                 }
-                list.appendChild(card);
+                grid.appendChild(card);
             });
+            list.appendChild(grid);
         }
 
         function renderProductionBatches() {
@@ -1625,6 +1746,7 @@
                 }
 
                 const recipeOptions = state.recipes.map(r => `<option value="${r.id}" ${String(batch.recipeId) === String(r.id) ? 'selected' : ''}>${r.nombre || 'Receta sin nombre'}</option>`).join('');
+                const clientOptions = state.clients.map(c => `<option value="${c.id}" ${String(batch.clientId) === String(c.id) ? 'selected' : ''}>${c.nombre || 'Cliente sin nombre'}</option>`).join('');
 
                 list.innerHTML += `
                     <div class="mb-4 p-4 bg-amber-50 rounded border border-amber-200">
@@ -1645,11 +1767,10 @@
                                 <input class="input-field w-full" type="number" min="1" step="1" value="${batch.cantidadLotes}" onchange="updateProductionBatch(${index}, 'cantidadLotes', this.value)">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">${t.batchStatus}</label>
-                                <select class="input-field w-full" onchange="updateProductionBatch(${index}, 'estado', this.value)">
-                                    <option value="pendiente" ${batch.estado === 'pendiente' ? 'selected' : ''}>${t.batchPending}</option>
-                                    <option value="en_produccion" ${batch.estado === 'en_produccion' ? 'selected' : ''}>${t.batchInProgress}</option>
-                                    <option value="completado" ${batch.estado === 'completado' ? 'selected' : ''}>${t.batchDone}</option>
+                                <label class="block text-sm font-medium mb-1">Cliente</label>
+                                <select class="input-field w-full" onchange="updateProductionBatch(${index}, 'clientId', this.value)">
+                                    <option value="">Selecciona cliente</option>
+                                    ${clientOptions}
                                 </select>
                             </div>
                             <div>
@@ -1660,7 +1781,7 @@
                                 <button class="bg-red-600 text-white px-3 py-2 rounded w-full" onclick="removeProductionBatch(${index})">Eliminar</button>
                             </div>
                         </div>
-                        <div class="mt-2 flex justify-end">
+                        <div class="mt-2 flex justify-end gap-2">
                             <button class="btn-primary px-3 py-2 rounded" onclick="generateBatchDocument(${index})">Generar Hoja de Produccion</button>
                         </div>
                         <div class="mt-2">
@@ -1863,6 +1984,11 @@
         }
 
         // Formatear montos de dinero según la moneda seleccionada
+                // Generar PDF desde el botón de Rentabilidad
+                function generatePDFFromBatch() {
+                    generatePDF();
+                }
+
         function formatCurrency(amount) {
             const symbols = { COP: '$', USD: '$', EUR: '€', CAD: 'C$', GBP: '£' };
             const symbol = symbols[state.moneda] || '$';
@@ -2031,8 +2157,8 @@
             calculateResults();
         }
 
-        // Generar y descargar el PDF de la cotización
-        function generatePDF() {
+        // Generar y descargar el PDF de la cotización basado en el cliente del lote seleccionado
+        function generatePDF(batchIndex) {
             console.log('Iniciando generación de PDF...');
             if (!window.jspdf) {
                 console.error('jsPDF no está cargado. Verifica la conexión a internet o descarga la librería localmente.');
@@ -2041,7 +2167,24 @@
             }
             const t = uiTranslations[state.idioma] || uiTranslations.es;
             const status = document.getElementById('pdfStatus');
-            status.textContent = t.generatingPDF;
+            if (status) {
+                status.textContent = t.generatingPDF;
+            }
+
+            // Obtener cliente del batch si se especifica, sino usar el primero disponible
+            let clientData = {};
+            if (batchIndex !== undefined && state.productionBatches[batchIndex]) {
+                const batch = state.productionBatches[batchIndex];
+                if (batch.clientId) {
+                    const found = state.clients.find(c => c.id === batch.clientId);
+                    clientData = found || state.clients[0] || {};
+                } else {
+                    clientData = state.clients[0] || {};
+                }
+            } else {
+                // Fallback: usar primer cliente disponible
+                clientData = state.clients[0] || {};
+            }
 
             const results = calculateResults();
 
@@ -2114,7 +2257,7 @@
                     additionalCosts: 'Additional Costs',
                     totalCosts: 'Total Costs',
                     myProfit: 'My Profit',
-                    decorationValue: 'Decoration Value',
+                    decorationValue: 'Preparation Value',
                     finalPrice: 'FINAL PRICE',
                     taxableBase: 'Taxable Base',
                     taxAmount: 'Tax Amount',
@@ -2151,7 +2294,7 @@
                     additionalCosts: 'Coûts Additionnels',
                     totalCosts: 'Coûts Totaux',
                     myProfit: 'Mon Profit',
-                    decorationValue: 'Valeur de la Décoration',
+                    decorationValue: 'Valeur de la Préparation',
                     finalPrice: 'PRIX FINAL',
                     taxableBase: 'Base Imposable',
                     taxAmount: 'Montant de l\'Impôt',
@@ -2210,16 +2353,16 @@
             doc.text(pdfT.clientInfo, 15, 74);
          //   y += 8;
             doc.setFont(undefined, 'normal');
-            doc.text(`${pdfT.client}: ${state.clientData.nombre || pdfT.notSpecified}`, 15, 80);
-            doc.text(`${pdfT.location}: ${state.clientData.lugarDecoracion || pdfT.notSpecified}`, 15, 85);
-            doc.text(`${pdfT.email}: ${state.clientData.email || pdfT.notSpecified}`, 15, 90);
-            doc.text(`${pdfT.contact}: ${state.clientData.contacto || pdfT.notSpecified}`, 15, 95);
+            doc.text(`${pdfT.client}: ${clientData.nombre || pdfT.notSpecified}`, 15, 80);
+            doc.text(`${pdfT.location}: ${clientData.lugarDecoracion || pdfT.notSpecified}`, 15, 85);
+            doc.text(`${pdfT.email}: ${clientData.email || pdfT.notSpecified}`, 15, 90);
+            doc.text(`${pdfT.contact}: ${clientData.contacto || pdfT.notSpecified}`, 15, 95);
 
           //  Fechas - A la derecha
             doc.text(`${pdfT.decorationDate}:`, 150, 80);
-            doc.text(`${state.clientData.fechaDecoracion || pdfT.notSpecified}`, 155, 85);
+            doc.text(`${clientData.fechaDecoracion || pdfT.notSpecified}`, 155, 85);
             doc.text(`${pdfT.quoteDate}:`, 150, 90);
-            doc.text(`${state.clientData.fechaCotizacion || pdfT.notSpecified}`, 155, 95);
+            doc.text(`${clientData.fechaCotizacion || pdfT.notSpecified}`, 155, 95);
 
             // Service Details
             y = 105;
@@ -2227,16 +2370,16 @@
             doc.text(pdfT.serviceDetails, 15, y);
             y += 8;
             doc.setFont(undefined, 'normal');
-            doc.text(`${pdfT.serviceType}: ${state.clientData.tipoServicio || pdfT.notSpecified}`, 15, y);
+            doc.text(`${pdfT.serviceType}: ${clientData.tipoServicio || pdfT.notSpecified}`, 15, y);
             y += 8;
-            const descText = `${pdfT.description}: ${state.clientData.descripcion || pdfT.notSpecified}`;
+            const descText = `${pdfT.description}: ${clientData.descripcion || pdfT.notSpecified}`;
  
             const descLines = doc.splitTextToSize(descText, 175);
             doc.text(descLines, 15, y);
             y += descLines.length * 4.5;
         
-            if (state.clientData.notas) {
-                const notesText = `${pdfT.notes}: ${state.clientData.notas}`;
+            if (clientData.notas) {
+                const notesText = `${pdfT.notes}: ${clientData.notas}`;
                 const notesLines = doc.splitTextToSize(notesText, 175);
                 doc.text(notesLines, 15, y);
                 y += notesLines.length * 4.5;
@@ -2306,8 +2449,10 @@
             doc.text(pdfT.contactUs, contactX, y);
 
             // Download
-            doc.save(`cotizacion-${state.clientData.nombre || 'panaderia'}-${new Date().toISOString().split('T')[0]}.pdf`);
-            status.textContent = t.pdfGenerated;
+            doc.save(`cotizacion-${clientData.nombre || 'panaderia'}-${new Date().toISOString().split('T')[0]}.pdf`);
+            if (status) {
+                status.textContent = t.pdfGenerated;
+            }
         }
 
         // Event listeners para manejar interacciones del usuario
@@ -2392,22 +2537,27 @@
             state.moneda = e.target.value;
         });
 
-        // Cambios en los datos del cliente
-        const clientFieldMap = {
-            clienteNombre: 'nombre',
-            tipoServicio: 'tipoServicio',
-            descripcion: 'descripcion',
-            fechaDecoracion: 'fechaDecoracion',
-            lugarDecoracion: 'lugarDecoracion',
-            clienteEmail: 'email',
-            contacto: 'contacto',
-            notas: 'notas',
-            fechaCotizacion: 'fechaCotizacion'
-        };
-        ['clienteNombre', 'tipoServicio', 'descripcion', 'fechaDecoracion', 'lugarDecoracion', 'clienteEmail', 'contacto', 'notas', 'fechaCotizacion'].forEach(id => {
-            document.getElementById(id).addEventListener('input', (e) => {
-                state.clientData[clientFieldMap[id]] = e.target.value;
+
+        // Botón para agregar cliente
+        document.getElementById('addClient').addEventListener('click', () => {
+            const newId = getNextId();
+            state.clients.push({
+                id: newId,
+                nombre: 'Nuevo Cliente',
+                tipoServicio: '',
+                descripcion: '',
+                fechaDecoracion: '',
+                lugarDecoracion: '',
+                email: '',
+                contacto: '',
+                notas: '',
+                fechaCotizacion: new Date().toISOString().split('T')[0]
             });
+            if (!state.activeClientId) {
+                state.activeClientId = newId;
+            }
+            state.expandedClients.add(newId);
+            renderClients();
         });
 
         // Cambios en los parámetros de cálculo
@@ -2473,12 +2623,13 @@
 
         document.getElementById('addProductionBatch').addEventListener('click', () => {
             const defaultRecipeId = state.recipes.length ? state.recipes[0].id : '';
+            const defaultClientId = state.clients.length ? state.clients[0].id : null;
             state.productionBatches.push({
                 id: getNextId(),
                 nombre: `Lote ${state.productionBatches.length + 1}`,
                 recipeId: defaultRecipeId,
                 cantidadLotes: 1,
-                estado: 'pendiente',
+                clientId: defaultClientId,
                 fecha: new Date().toISOString().split('T')[0],
                 notas: ''
             });
@@ -2498,9 +2649,6 @@
             renderExpenses();
             calculateResults();
         });
-
-        // Botón para generar PDF
-        document.getElementById('generatePDF').addEventListener('click', generatePDF);
 
         // Botón de debug para verificar localStorage
         function bindOptionalClick(id, handler) {
@@ -2598,6 +2746,15 @@
         window.updateProductionBatch = updateProductionBatch;
         window.removeProductionBatch = removeProductionBatch;
         window.generateBatchDocument = generateBatchDocument;
+
+        // Exportar funciones de clientes
+        window.getActiveClient = getActiveClient;
+        window.renderClients = renderClients;
+        window.toggleClientExpand = toggleClientExpand;
+        window.setActiveClient = setActiveClient;
+        window.updateClient = updateClient;
+        window.removeClient = removeClient;
+        window.generatePDFFromBatch = generatePDFFromBatch;
     </script>
     <!-- Fin del código JavaScript -->
 </body>
