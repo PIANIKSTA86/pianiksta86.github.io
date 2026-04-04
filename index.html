@@ -137,7 +137,7 @@
                 <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="materiales">Materiales</button>
                 <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="recetas">Recetas</button>
                 <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="produccion">Produccion</button>
-                <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="gastos">Gastos Operativos</button>
+                    <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="gastos">Gastos Adicionales</button>
                 <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="rentabilidad">Rentabilidad</button>
                 <button class="tab-btn px-4 py-2 text-gray-600 whitespace-nowrap" data-tab="ayuda">Ayuda</button>
             </div>
@@ -159,7 +159,7 @@
                 <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="materiales">Materiales</button>
                 <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="recetas">Recetas</button>
                 <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="produccion">Produccion</button>
-                <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="gastos">Gastos Operativos</button>
+                    <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="gastos">Gastos Adicionales</button>
                 <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="rentabilidad">Rentabilidad</button>
                 <button class="tab-btn w-full text-left px-3 py-2 rounded text-gray-700 hover:bg-amber-50" data-tab="ayuda">Ayuda</button>
             </nav>
@@ -197,23 +197,30 @@
                         <div id="logoPreview" class="mt-2"></div>
                     </div>
                 </div>
-                <div class="mt-4">
-                    <label for="idioma" class="block text-sm font-medium mb-1">Idioma</label>
-                    <select id="idioma" class="input-field">
-                        <option value="es">Español</option>
-                        <option value="en">English</option>
-                        <option value="fr">Français</option>
-                    </select>
-                </div>
-                <div class="mt-4">
-                    <label for="moneda" class="block text-sm font-medium mb-1">Moneda</label>
-                    <select id="moneda" class="input-field">
-                        <option value="COP">COP</option>
-                        <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
-                        <option value="CAD">CAD</option>
-                        <option value="GBP">GBP</option>
-                    </select>
+                <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+                    <div>
+                        <label for="idioma" class="block text-sm font-medium mb-1">Idioma</label>
+                        <select id="idioma" class="input-field w-full">
+                            <option value="es">Español</option>
+                            <option value="en">English</option>
+                            <option value="fr">Français</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="moneda" class="block text-sm font-medium mb-1">Moneda</label>
+                        <select id="moneda" class="input-field w-full">
+                            <option value="COP">COP</option>
+                            <option value="USD">USD</option>
+                            <option value="EUR">EUR</option>
+                            <option value="CAD">CAD</option>
+                            <option value="GBP">GBP</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="valorHoraTrabajo" class="block text-sm font-medium mb-1">Valor de una hora de trabajo</label>
+                        <input id="valorHoraTrabajo" type="number" min="0" step="0.01" class="input-field w-full" placeholder="0">
+                        <p id="valorHoraTrabajoHelp" class="text-xs text-gray-500 mt-1">Se usa como costo base para los insumos precargados de preparación, decoración y limpieza al crear una receta nueva.</p>
+                    </div>
                 </div>
                 <div class="mt-6 p-4 rounded-lg border border-amber-200 bg-amber-50">
                     <h3 class="text-lg font-semibold text-amber-800">Respaldo de Datos</h3>
@@ -258,7 +265,7 @@
         <div id="produccion" class="tab-content">
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Produccion</h2>
-                <button id="addProductionBatch" class="btn-primary px-4 py-2 rounded mb-4">Nuevo Lote de Produccion</button>
+                <button id="addProductionBatch" class="btn-primary px-4 py-2 rounded mb-4">Nueva Orden de Produccion</button>
                 <p class="text-sm text-amber-800 mb-3">Planifica lotes por receta, controla estado de produccion y calcula consumo estimado de insumos.</p>
                 <div id="productionList"></div>
             </div>
@@ -266,8 +273,8 @@
 
         <div id="gastos" class="tab-content">
             <div class="card p-6">
-                <h2 class="text-xl font-bold mb-4">Gastos Operativos</h2>
-                <button id="addExpense" class="btn-primary px-4 py-2 rounded mb-4">Agregar Gasto</button>
+                    <h2 class="text-xl font-bold mb-4">Gastos Adicionales</h2>
+                <button id="addExpense" class="btn-primary px-4 py-2 rounded mb-4">Agregar Gasto Adicional</button>
                 <div id="expensesList"></div>
             </div>
         </div>
@@ -276,20 +283,19 @@
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Cálculos de Rentabilidad</h2>
                 <div class="mb-6">
-                    <h3 id="laborCalcTitle" class="text-lg font-semibold mb-2">Cálculo de Mano de Obra</h3>
                     <div class="table-scroll">
                         <table class="table">
                             <thead>
                                 <tr>
                                     <th id="conceptTh">Concepto</th>
                                     <th id="totalMaterialsTh">Total Materiales</th>
-                                    <th id="laborPctTh">% Mano de Obra</th>
-                                    <th id="totalLaborTh">Total Mano de Obra</th>
+                                    <th id="laborPctTh">Costos Indirectos (%)</th>
+                                    <th id="totalLaborTh">Total Costos Indirectos</th>
                                 </tr>
                             </thead>
                             <tbody id="manoObraTable">
                                 <tr>
-                                    <td id="laborTd">Mano de Obra</td>
+                                    <td id="laborTd">Costo Directo</td>
                                     <td id="totalMaterialesDisplay">-</td>
                                     <td><input id="manoObraPctInput" type="number" step="0.01" class="input-field w-full" value="30"></td>
                                     <td id="totalManoObraDisplay">-</td>
@@ -327,9 +333,8 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th id="conceptRentTh">Concepto</th>
+                                    <th id="totalCostsTh">Total Costos</th>
                                     <th id="profitPctTh">% Rentabilidad</th>
-                                    <th id="totalCostsTh">Total de Costos</th>
                                     <th id="myProfitTh">Mi Ganancia</th>
                                     <th id="decorationValueTh">Valor Preparacion</th>
                                     <th id="additionalExpensesTh">Gastos Adicionales</th>
@@ -338,9 +343,8 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td id="profitTd">Rentabilidad</td>
-                                    <td><input id="rentabilidadPct" type="number" step="0.01" class="input-field w-full" value="45"></td>
                                     <td id="totalCostosDisplay">-</td>
+                                    <td><input id="rentabilidadPct" type="number" step="0.01" class="input-field w-full" value="45"></td>
                                     <td id="miGananciaDisplay">-</td>
                                     <td id="subtotalFinalDisplay">-</td>
                                     <td id="gastosAdicionalesDisplay">-</td>
@@ -420,7 +424,7 @@
                 <h2 class="text-xl font-bold mb-4">Ayuda - Guia de Uso</h2>
                 <div class="prose max-w-none">
                     <h3 class="text-lg font-semibold mb-2">1. Configuracion</h3>
-                    <p class="mb-4">Configura la informacion de tu negocio de panaderia o reposteria: nombre comercial, contacto, logo y moneda de trabajo.</p>
+                        <p class="mb-4">Configura la informacion de tu negocio de panaderia o reposteria: nombre comercial, contacto, logo, moneda y valor base por hora de trabajo.</p>
 
                     <h3 class="text-lg font-semibold mb-2">2. Cliente</h3>
                     <p class="mb-4">Ingresa los datos del cliente: Nombre, Tipo de Servicio, Fechas de Cotización y Preparación, Lugar de Preparación, Email, Contacto, Descripción del servicio y Notas adicionales.</p>
@@ -429,12 +433,12 @@
                     <p class="mb-4">Registra tus insumos con valor total, cantidad y unidad de medida (peso, volumen o cantidad). El sistema calcula automaticamente el costo por unidad para usarlo en recetas.</p>
 
                     <h3 class="text-lg font-semibold mb-2">4. Recetas</h3>
-                    <p class="mb-4">Crea o personaliza una receta y agrega ingredientes desde el inventario. El sistema calcula el costo estimado por receta segun la cantidad de cada insumo.</p>
+                        <p class="mb-4">Crea o personaliza una receta y agrega ingredientes desde el inventario. Cada receta nueva incluye los insumos precargados de preparación, decoración y limpieza con el valor por hora configurado.</p>
 
                     <h3 class="text-lg font-semibold mb-2">5. Produccion</h3>
                     <p class="mb-4">Gestiona lotes de produccion por receta. Define cantidad de lotes, estado y notas de elaboracion para controlar la operacion diaria.</p>
 
-                    <h3 class="text-lg font-semibold mb-2">6. Gastos Operativos</h3>
+                    <h3 class="text-lg font-semibold mb-2">6. Gastos Adicionales</h3>
                     <p class="mb-4">Incluye costos de energia, transporte, empaques u otros gastos indirectos para mejorar la precision de la cotizacion.</p>
 
                     <h3 class="text-lg font-semibold mb-2">7. Rentabilidad</h3>
@@ -472,6 +476,7 @@
                 telefono: '555-1234',
                 eslogan: 'Sabores que enamoran en cada horneada',
                 email: 'info@empresa.com',
+                    valorHoraTrabajo: 0,
                 logoBase64: null // Imagen del logo en base64
             },
             // Datos del cliente
@@ -528,7 +533,8 @@
         const measurementUnits = {
             peso: ['kilogramo (kg)', 'gramo (g)', 'libra (lb)', 'onza (oz)'],
             volumen: ['litro (l)', 'mililitro (ml)', 'galon (gal)', 'onza liquida (fl oz)'],
-            cantidad: ['unidad (und)', 'docena (doc)', 'bandeja (bdj)', 'caja (cja)']
+              cantidad: ['unidad (und)', 'docena (doc)', 'bandeja (bdj)', 'caja (cja)'],
+              tiempo: ['hora (h)', 'minuto (min)']
         };
 
         const legacyUnitMap = {
@@ -548,6 +554,10 @@
             mililitro: 'mililitro (ml)',
             galon: 'galon (gal)',
             'onza liquida': 'onza liquida (fl oz)',
+                hora: 'hora (h)',
+                h: 'hora (h)',
+                minuto: 'minuto (min)',
+                min: 'minuto (min)',
             unidad: 'unidad (und)',
             docena: 'docena (doc)',
             bandeja: 'bandeja (bdj)',
@@ -563,11 +573,21 @@
             'mililitro (ml)': { kind: 'volumen', toBase: 1 },
             'galon (gal)': { kind: 'volumen', toBase: 3785.411784 },
             'onza liquida (fl oz)': { kind: 'volumen', toBase: 29.5735295625 },
+                'hora (h)': { kind: 'tiempo', toBase: 60 },
+                'minuto (min)': { kind: 'tiempo', toBase: 1 },
             'unidad (und)': { kind: 'cantidad', toBase: 1 },
             'docena (doc)': { kind: 'cantidad', toBase: 12 },
             'bandeja (bdj)': { kind: 'cantidad', toBase: 1 },
             'caja (cja)': { kind: 'cantidad', toBase: 1 }
         };
+
+            const systemRecipeMaterialDefinitions = [
+                { id: 'system-preparacion', labelKey: 'preparationInput' },
+                { id: 'system-decoracion', labelKey: 'decorationInput' },
+                { id: 'system-horneado', labelKey: 'bakingInput' },
+                { id: 'system-refrigeracion', labelKey: 'refrigerationInput' },
+                { id: 'system-limpieza', labelKey: 'cleaningInput' }
+            ];
 
         function normalizeUnitName(unit, unitType) {
             const options = getUnitOptions(unitType);
@@ -595,6 +615,45 @@
             return Number.isFinite(convertedQty) ? convertedQty : qty;
         }
 
+        function getHourlyRate() {
+            return parseFloat(state.companyConfig.valorHoraTrabajo) || 0;
+        }
+
+        function getSystemMaterialLabel(definition) {
+            const t = uiTranslations[state.idioma] || uiTranslations.es;
+            return t[definition.labelKey] || uiTranslations.es[definition.labelKey] || definition.id;
+        }
+
+        function getSystemRecipeMaterials() {
+            const hourlyRate = getHourlyRate();
+            return systemRecipeMaterialDefinitions.map((definition) => ({
+                id: definition.id,
+                concepto: getSystemMaterialLabel(definition),
+                cantidad: 1,
+                unidadTipo: 'tiempo',
+                unidad: 'hora (h)',
+                subtotal: hourlyRate,
+                precioUnitario: hourlyRate,
+                system: true
+            }));
+        }
+
+        function getAvailableRecipeMaterials() {
+            return [...getSystemRecipeMaterials(), ...state.materials];
+        }
+
+        function getRecipeMaterialById(id) {
+            return getSystemRecipeMaterials().find((mat) => String(mat.id) === String(id)) || getMaterialById(id);
+        }
+
+        function getDefaultRecipeIngredients() {
+            return getSystemRecipeMaterials().map((material) => ({
+                materialId: material.id,
+                cantidad: 0,
+                unidad: material.unidad
+            }));
+        }
+
         // Traducciones para la interfaz de usuario
         const uiTranslations = {
             es: {
@@ -608,7 +667,9 @@
                 materialsTab: 'Materiales',
                 recipesTab: 'Recetas',
                 productionTab: 'Produccion',
-                expensesTab: 'Gastos Operativos',
+                    expensesTab: 'Gastos Adicionales',
+                    hourlyRate: 'Valor de una hora de trabajo',
+                    hourlyRateHelp: 'Se usa como costo base para los insumos precargados de preparación, decoración, horneado, refrigeración y limpieza al crear una receta nueva.',
                 profitabilityTab: 'Rentabilidad',
                 pdfTab: 'PDF',
                 helpTab: 'Ayuda',
@@ -648,29 +709,37 @@
                 addIngredient: 'Agregar Ingrediente',
                 recipeCost: 'Costo Receta',
                 production: 'Produccion',
-                addBatch: 'Nuevo Lote de Produccion',
+                addBatch: 'Nueva Orden de Produccion',
                 batchName: 'Lote',
                 batchRecipe: 'Receta',
                 batchQty: 'Cantidad Lotes',
+                batchClient: 'Cliente',
                 batchStatus: 'Estado',
                 batchDate: 'Fecha',
                 batchNotes: 'Notas',
                 batchEstimatedCost: 'Costo Estimado',
                 batchIngredients: 'Consumo Estimado',
+                generateOrderDetail: 'Generar Detalle de Orden',
                 batchPending: 'Pendiente',
                 batchInProgress: 'En produccion',
                 batchDone: 'Completado',
-                indirectExpenses: 'Gastos Operativos',
-                addExpense: 'Agregar Gasto',
+                    indirectExpenses: 'Gastos Adicionales',
+                    addExpense: 'Agregar Gasto Adicional',
                 expenseConcept: 'Concepto',
                 expensePrice: 'Precio',
+                    preparationInput: 'Preparación',
+                    decorationInput: 'Decoración',
+                    bakingInput: 'Horneado',
+                    refrigerationInput: 'Refrigeración',
+                    cleaningInput: 'Limpieza',
+                    recipePresetHint: 'Cada receta nueva incluye preparación, decoración, horneado, refrigeración y limpieza usando el valor por hora configurado.',
                 profitabilityCalc: 'Cálculos de Rentabilidad',
-                laborCalc: 'Cálculo de Mano de Obra',
+                laborCalc: '',
                 concept: 'Concepto',
                 totalMaterials: 'Total Materiales',
-                laborPct: '% Mano de Obra',
-                totalLabor: 'Total Mano de Obra',
-                labor: 'Mano de Obra',
+                laborPct: 'Costos Indirectos (%)',
+                totalLabor: 'Total Costos Indirectos',
+                labor: 'Costo Directo',
                 assistants: 'Asistentes',
                 assistant1: 'Asistente 1',
                 assistant2: 'Asistente 2',
@@ -678,7 +747,7 @@
                 assistant4: 'Asistente 4',
                 profitSettlement: 'Liquidación de Rentabilidad',
                 profitPct: '% Rentabilidad',
-                totalCosts: 'Total de Costos',
+                totalCosts: 'Total Costos',
                 myProfit: 'Mi Ganancia',
                 decorationValue: 'Valor Preparación',
                 additionalExpenses: 'Gastos Adicionales',
@@ -696,7 +765,7 @@
                 totalWithTax: 'Total con Impuesto',
                 noTax: 'Sin Impuesto',
                 taxName: 'Nombre del Impuesto',
-                laborPct: 'Mano de Obra (%)',
+                laborPct: 'Costos Indirectos (%)',
                 profitPct: 'Rentabilidad (%)',
                 assistant1: 'Asistente 1',
                 assistant2: 'Asistente 2',
@@ -704,9 +773,9 @@
                 assistant4: 'Asistente 4',
                 results: 'Resultados',
                 totalMaterials: 'Total Materiales',
-                totalLabor: 'Total Mano de Obra',
+                totalLabor: 'Total Costos Indirectos',
                 totalAssistants: 'Total Asistentes',
-                totalExpenses: 'Total Gastos',
+                totalExpenses: 'Total Gastos Adicionales',
                 totalCosts: 'Total Costos',
                 myProfit: 'Mi Ganancia',
                 finalPrice: 'Precio Final',
@@ -726,7 +795,9 @@
                 materialsTab: 'Materials',
                 recipesTab: 'Recipes',
                 productionTab: 'Production',
-                expensesTab: 'Operating Costs',
+                    expensesTab: 'Additional Expenses',
+                    hourlyRate: 'Hourly work rate',
+                    hourlyRateHelp: 'Used as the base cost for the preset preparation, decoration, baking, refrigeration and cleaning inputs when creating a new recipe.',
                 profitabilityTab: 'Profitability',
                 pdfTab: 'PDF',
                 helpTab: 'Help',
@@ -766,29 +837,37 @@
                 addIngredient: 'Add Ingredient',
                 recipeCost: 'Recipe Cost',
                 production: 'Production',
-                addBatch: 'New Production Batch',
+                addBatch: 'New Production Order',
                 batchName: 'Batch',
                 batchRecipe: 'Recipe',
                 batchQty: 'Batch Qty',
+                batchClient: 'Client',
                 batchStatus: 'Status',
                 batchDate: 'Date',
                 batchNotes: 'Notes',
                 batchEstimatedCost: 'Estimated Cost',
                 batchIngredients: 'Estimated Consumption',
+                generateOrderDetail: 'Generate Order Detail',
                 batchPending: 'Pending',
                 batchInProgress: 'In Progress',
                 batchDone: 'Completed',
-                indirectExpenses: 'Operating Costs',
-                addExpense: 'Add Expense',
+                    indirectExpenses: 'Additional Expenses',
+                    addExpense: 'Add Additional Expense',
                 expenseConcept: 'Concept',
                 expensePrice: 'Price',
+                    preparationInput: 'Preparation',
+                    decorationInput: 'Decoration',
+                    bakingInput: 'Baking',
+                    refrigerationInput: 'Refrigeration',
+                    cleaningInput: 'Cleaning',
+                    recipePresetHint: 'Each new recipe includes preparation, decoration, baking, refrigeration and cleaning using the configured hourly rate.',
                 profitabilityCalc: 'Profitability Calculations',
-                laborCalc: 'Labor Calculation',
+                laborCalc: '',
                 concept: 'Concept',
                 totalMaterials: 'Total Materials',
-                laborPct: '% Labor',
-                totalLabor: 'Total Labor',
-                labor: 'Labor',
+                laborPct: 'Indirect Costs (%)',
+                totalLabor: 'Total Indirect Costs',
+                labor: 'Direct Cost',
                 assistants: 'Assistants',
                 assistant1: 'Assistant 1',
                 assistant2: 'Assistant 2',
@@ -814,7 +893,7 @@
                 totalWithTax: 'Total with Tax',
                 noTax: 'No Tax',
                 taxName: 'Tax Name',
-                laborPct: 'Labor (%)',
+                laborPct: 'Indirect Costs (%)',
                 profitPct: 'Profitability (%)',
                 assistant1: 'Assistant 1',
                 assistant2: 'Assistant 2',
@@ -822,9 +901,9 @@
                 assistant4: 'Assistant 4',
                 results: 'Results',
                 totalMaterials: 'Total Materials',
-                totalLabor: 'Total Labor',
+                totalLabor: 'Total Indirect Costs',
                 totalAssistants: 'Total Assistants',
-                totalExpenses: 'Total Expenses',
+                totalExpenses: 'Total Additional Expenses',
                 totalCosts: 'Total Costs',
                 myProfit: 'My Profit',
                 finalPrice: 'Final Price',
@@ -844,7 +923,9 @@
                 materialsTab: 'Matériaux',
                 recipesTab: 'Recettes',
                 productionTab: 'Production',
-                expensesTab: 'Couts Operatifs',
+                    expensesTab: 'Dépenses Additionnelles',
+                    hourlyRate: 'Valeur d\'une heure de travail',
+                    hourlyRateHelp: 'Utilisée comme coût de base pour les intrants prédéfinis de préparation, décoration, cuisson, réfrigération et nettoyage lors de la création d\'une nouvelle recette.',
                 profitabilityTab: 'Rentabilité',
                 pdfTab: 'PDF',
                 helpTab: 'Aide',
@@ -884,29 +965,37 @@
                 addIngredient: 'Ajouter Ingredient',
                 recipeCost: 'Cout Recette',
                 production: 'Production',
-                addBatch: 'Nouveau Lot de Production',
+                addBatch: 'Nouvel Ordre de Production',
                 batchName: 'Lot',
                 batchRecipe: 'Recette',
                 batchQty: 'Quantite Lots',
+                batchClient: 'Client',
                 batchStatus: 'Etat',
                 batchDate: 'Date',
                 batchNotes: 'Notes',
                 batchEstimatedCost: 'Cout Estime',
                 batchIngredients: 'Consommation Estimee',
+                generateOrderDetail: 'Generer le Detail de l\'Ordre',
                 batchPending: 'En attente',
                 batchInProgress: 'En production',
                 batchDone: 'Termine',
-                indirectExpenses: 'Couts Operatifs',
-                addExpense: 'Ajouter Dépense',
+                    indirectExpenses: 'Dépenses Additionnelles',
+                addExpense: 'Ajouter Dépense Additionnelle',
                 expenseConcept: 'Concept',
                 expensePrice: 'Prix',
+                    preparationInput: 'Préparation',
+                    decorationInput: 'Décoration',
+                    bakingInput: 'Cuisson',
+                    refrigerationInput: 'Réfrigération',
+                    cleaningInput: 'Nettoyage',
+                    recipePresetHint: 'Chaque nouvelle recette inclut préparation, décoration, cuisson, réfrigération et nettoyage avec le tarif horaire configuré.',
                 profitabilityCalc: 'Calculs de Rentabilité',
-                laborCalc: 'Calcul de Main d\'œuvre',
+                laborCalc: '',
                 concept: 'Concept',
                 totalMaterials: 'Total Matériaux',
-                laborPct: '% Main d\'œuvre',
-                totalLabor: 'Total Main d\'œuvre',
-                labor: 'Main d\'œuvre',
+                laborPct: 'Coûts Indirects (%)',
+                totalLabor: 'Total Coûts Indirects',
+                labor: 'Coût Direct',
                 assistants: 'Assistants',
                 assistant1: 'Assistant 1',
                 assistant2: 'Assistant 2',
@@ -932,7 +1021,7 @@
                 totalWithTax: 'Total avec Impôt',
                 noTax: 'Sans Impôt',
                 taxName: 'Nom de l\'Impôt',
-                laborPct: 'Main d\'œuvre (%)',
+                laborPct: 'Coûts Indirects (%)',
                 profitPct: 'Rentabilité (%)',
                 assistant1: 'Assistant 1',
                 assistant2: 'Assistant 2',
@@ -940,9 +1029,9 @@
                 assistant4: 'Assistant 4',
                 results: 'Résultats',
                 totalMaterials: 'Total Matériaux',
-                totalLabor: 'Total Main d\'œuvre',
+                totalLabor: 'Total Coûts Indirects',
                 totalAssistants: 'Total Assistants',
-                totalExpenses: 'Total Dépenses',
+                totalExpenses: 'Total Dépenses Additionnelles',
                 totalCosts: 'Coûts Totaux',
                 myProfit: 'Mon Profit',
                 finalPrice: 'Prix Final',
@@ -956,6 +1045,18 @@
         // Función para actualizar el idioma de la interfaz
         function updateLanguage() {
             const t = uiTranslations[state.idioma] || uiTranslations.es;
+                const setTextById = (id, text) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = text;
+                    }
+                };
+                const setTextBySelector = (selector, text) => {
+                    const element = document.querySelector(selector);
+                    if (element) {
+                        element.textContent = text;
+                    }
+                };
             const headerTitle = document.getElementById('headerTitle');
             const headerSubtitle = document.getElementById('headerSubtitle');
             if (headerTitle) {
@@ -986,79 +1087,70 @@
                 currentTabLabelElement.textContent = activeTabBtn.textContent.trim();
             }
             // Config tab
-            document.querySelector('#config h2').textContent = t.companyConfig;
-            document.querySelector('label[for="empresa"]').textContent = t.companyName;
-            document.querySelector('label[for="telefono"]').textContent = t.phone;
-            document.querySelector('label[for="direccion"]').textContent = t.address;
-            document.querySelector('label[for="email"]').textContent = t.email;
-            document.querySelector('label[for="eslogan"]').textContent = t.slogan;
-            document.querySelector('label[for="logo"]').textContent = t.logo;
-            document.querySelector('#logo + p').textContent = t.logoDesc;
-            document.querySelector('label[for="idioma"]').textContent = t.language;
-            document.querySelector('label[for="moneda"]').textContent = t.currency;
+            setTextBySelector('#config h2', t.companyConfig);
+            setTextBySelector('label[for="empresa"]', t.companyName);
+            setTextBySelector('label[for="telefono"]', t.phone);
+            setTextBySelector('label[for="direccion"]', t.address);
+            setTextBySelector('label[for="email"]', t.email);
+            setTextBySelector('label[for="eslogan"]', t.slogan);
+            setTextBySelector('label[for="logo"]', t.logo);
+            setTextBySelector('#logo + p', t.logoDesc);
+            setTextBySelector('label[for="idioma"]', t.language);
+            setTextBySelector('label[for="moneda"]', t.currency);
+            setTextBySelector('label[for="valorHoraTrabajo"]', t.hourlyRate);
+            setTextById('valorHoraTrabajoHelp', t.hourlyRateHelp);
             // Client tab
-            document.querySelector('#cliente h2').textContent = t.clientInfo;
-            document.querySelector('label[for="clienteNombre"]').textContent = t.clientName;
-            document.querySelector('label[for="tipoServicio"]').textContent = t.serviceType;
-            document.querySelector('label[for="descripcion"]').textContent = t.description;
-            document.querySelector('label[for="fechaDecoracion"]').textContent = t.decorationDate;
-            document.querySelector('label[for="lugarDecoracion"]').textContent = t.decorationPlace;
-            document.querySelector('label[for="clienteEmail"]').textContent = t.clientEmail;
-            document.querySelector('label[for="contacto"]').textContent = t.contact;
-            document.querySelector('label[for="notas"]').textContent = t.notes;
-            document.querySelector('label[for="fechaCotizacion"]').textContent = t.quotationDate;
+            setTextBySelector('#cliente h2', t.clientInfo);
             // Materials tab
-            document.querySelector('#materiales h2').textContent = t.materials;
-            document.getElementById('addMaterial').textContent = t.addMaterial;
+            setTextBySelector('#materiales h2', t.materials);
+            setTextById('addMaterial', t.addMaterial);
             // Recipes tab
-            document.querySelector('#recetas h2').textContent = t.recipes;
-            document.getElementById('addRecipe').textContent = t.addRecipe;
+            setTextBySelector('#recetas h2', t.recipes);
+            setTextById('addRecipe', t.addRecipe);
             // Production tab
-            document.querySelector('#produccion h2').textContent = t.production;
-            document.getElementById('addProductionBatch').textContent = t.addBatch;
+            setTextBySelector('#produccion h2', t.production);
+            setTextById('addProductionBatch', t.addBatch);
             // Expenses tab
-            document.querySelector('#gastos h2').textContent = t.indirectExpenses;
-            document.getElementById('addExpense').textContent = t.addExpense;
+            setTextBySelector('#gastos h2', t.indirectExpenses);
+            setTextById('addExpense', t.addExpense);
             // Profitability tab
-            document.querySelector('#rentabilidad h2').textContent = t.profitabilityCalc;
-            document.getElementById('laborCalcTitle').textContent = t.laborCalc;
-            document.getElementById('conceptTh').textContent = t.concept;
-            document.getElementById('totalMaterialsTh').textContent = t.totalMaterials;
-            document.getElementById('laborPctTh').textContent = t.laborPct;
-            document.getElementById('totalLaborTh').textContent = t.totalLabor;
-            document.getElementById('laborTd').textContent = t.labor;
-            document.getElementById('assistantsTitle').textContent = t.assistants;
-            document.getElementById('assistant1Th').textContent = t.assistant1;
-            document.getElementById('assistant2Th').textContent = t.assistant2;
-            document.getElementById('assistant3Th').textContent = t.assistant3;
-            document.getElementById('assistant4Th').textContent = t.assistant4;
-            document.getElementById('profitSettlementTitle').textContent = t.profitSettlement;
-            document.getElementById('conceptRentTh').textContent = t.concept;
-            document.getElementById('profitPctTh').textContent = t.profitPct;
-            document.getElementById('totalCostsTh').textContent = t.totalCosts;
-            document.getElementById('myProfitTh').textContent = t.myProfit;
-            document.getElementById('decorationValueTh').textContent = t.decorationValue;
-            document.getElementById('additionalExpensesTh').textContent = t.additionalExpenses;
-            document.getElementById('totalWithoutTaxTh').textContent = t.totalWithoutTax;
-            document.getElementById('profitTd').textContent = t.profit;
+            setTextBySelector('#rentabilidad h2', t.profitabilityCalc);
+            setTextById('laborCalcTitle', t.laborCalc);
+            setTextById('conceptTh', t.concept);
+            setTextById('totalMaterialsTh', t.totalMaterials);
+            setTextById('laborPctTh', t.laborPct);
+            setTextById('totalLaborTh', t.totalLabor);
+            setTextById('laborTd', t.labor);
+            setTextById('assistantsTitle', t.assistants);
+            setTextById('assistant1Th', t.assistant1);
+            setTextById('assistant2Th', t.assistant2);
+            setTextById('assistant3Th', t.assistant3);
+            setTextById('assistant4Th', t.assistant4);
+            setTextById('profitSettlementTitle', t.profitSettlement);
+            setTextById('profitPctTh', t.profitPct);
+            setTextById('totalCostsTh', t.totalCosts);
+            setTextById('myProfitTh', t.myProfit);
+            setTextById('decorationValueTh', t.decorationValue);
+            setTextById('additionalExpensesTh', t.additionalExpenses);
+            setTextById('totalWithoutTaxTh', t.totalWithoutTax);
             // Tax settlement
-            document.getElementById('taxSettlementTitle').textContent = t.taxSettlement;
-            document.querySelector('label[for="nombreImpuesto"]').textContent = t.taxName;
-            document.querySelector('label[for="tasaImpuesto"]').textContent = t.taxes;
-            document.querySelector('label[for="tipoImpuesto"]').textContent = t.taxType;
-            document.querySelector('#tipoImpuesto option[value="incluido"]').textContent = t.included;
-            document.querySelector('#tipoImpuesto option[value="excluido"]').textContent = t.excluded;
-            document.querySelector('#tipoImpuesto option[value="noimpuesto"]').textContent = t.noTax;
-            document.querySelector('#tipoImpuesto2 option[value="incluido"]').textContent = t.included;
-            document.querySelector('#tipoImpuesto2 option[value="excluido"]').textContent = t.excluded;
-            document.querySelector('#tipoImpuesto2 option[value="noimpuesto"]').textContent = t.noTax;
-            document.getElementById('baseImponibleLabel').textContent = t.taxableBase;
-            document.getElementById('impuestoLabel').textContent = t.taxAmount;
+            setTextById('taxSettlementTitle', t.taxSettlement);
+            setTextBySelector('label[for="nombreImpuesto"]', t.taxName);
+            setTextBySelector('label[for="tasaImpuesto"]', t.taxes);
+            setTextBySelector('label[for="tipoImpuesto"]', t.taxType);
+            setTextBySelector('#tipoImpuesto option[value="incluido"]', t.included);
+            setTextBySelector('#tipoImpuesto option[value="excluido"]', t.excluded);
+            setTextBySelector('#tipoImpuesto option[value="noimpuesto"]', t.noTax);
+            setTextBySelector('#tipoImpuesto2 option[value="incluido"]', t.included);
+            setTextBySelector('#tipoImpuesto2 option[value="excluido"]', t.excluded);
+            setTextBySelector('#tipoImpuesto2 option[value="noimpuesto"]', t.noTax);
+            setTextById('baseImponibleLabel', t.taxableBase);
+            setTextById('impuestoLabel', t.taxAmount);
             const totalTaxLabel = document.getElementById('totalImpuestoLabel');
             if (totalTaxLabel) {
                 totalTaxLabel.textContent = t.totalWithTax;
             }
-            document.getElementById('totalWithTaxTitle').textContent = t.totalWithTax;
+            setTextById('totalWithTaxTitle', t.totalWithTax);
 
             // Re-renderizar vistas dinamicas con las nuevas traducciones
             renderMaterials();
@@ -1228,6 +1320,17 @@
         }
 
         function normalizeLoadedState() {
+                state.companyConfig = {
+                    empresa: 'Mi Panaderia Artesanal',
+                    direccion: 'Calle Flores 123, Ciudad',
+                    telefono: '555-1234',
+                    eslogan: 'Sabores que enamoran en cada horneada',
+                    email: 'info@empresa.com',
+                    valorHoraTrabajo: 0,
+                    logoBase64: null,
+                    ...(state.companyConfig || {})
+                };
+                state.companyConfig.valorHoraTrabajo = parseFloat(state.companyConfig.valorHoraTrabajo) || 0;
             state.materials = (Array.isArray(state.materials) ? state.materials : []).map((mat) => {
                 const unitType = mat.unidadTipo || 'cantidad';
                 const unitOptions = getUnitOptions(unitType);
@@ -1255,7 +1358,7 @@
             state.recipes = rawRecipes.map((recipe) => ({
                 ...recipe,
                 ingredientes: (Array.isArray(recipe.ingredientes) ? recipe.ingredientes : []).map((ing) => {
-                    const material = getMaterialById(ing.materialId);
+                    const material = getRecipeMaterialById(ing.materialId);
                     if (!material) {
                         return {
                             ...ing,
@@ -1438,6 +1541,7 @@
                 telefono: '555-9999',
                 eslogan: 'Eslogan de prueba para verificación',
                 email: 'test@empresa.com',
+                valorHoraTrabajo: 25000,
                 logoBase64: null
             };
 
@@ -1526,6 +1630,7 @@
             }
             document.getElementById('idioma').value = state.idioma;
             document.getElementById('moneda').value = state.moneda;
+            document.getElementById('valorHoraTrabajo').value = state.companyConfig.valorHoraTrabajo;
 
 
             // Parámetros de cálculo
@@ -1668,7 +1773,7 @@
                 if (lotes <= 0) return;
 
                 recipe.ingredientes.forEach((ing) => {
-                    const material = getMaterialById(ing.materialId);
+                    const material = getRecipeMaterialById(ing.materialId);
                     if (!material) return;
 
                     const qty = getIngredientBaseQuantity(ing, material) * lotes;
@@ -1698,7 +1803,7 @@
 
         function calculateRecipeCost(recipe) {
             return recipe.ingredientes.reduce((sum, ing) => {
-                const material = getMaterialById(ing.materialId);
+                const material = getRecipeMaterialById(ing.materialId);
                 if (!material) return sum;
                 const qtyInBaseUnit = getIngredientBaseQuantity(ing, material);
                 return sum + (qtyInBaseUnit * (parseFloat(material.precioUnitario) || 0));
@@ -1746,8 +1851,8 @@
                 } else {
                     // Vista expandida
                     const ingredientsHtml = recipe.ingredientes.map((ing, ingIndex) => {
-                        const options = state.materials.map(mat => `<option value="${mat.id}" ${Number(ing.materialId) === mat.id ? 'selected' : ''}>${mat.concepto} (${mat.unidad || 'unidad'})</option>`).join('');
-                        const selectedMaterial = getMaterialById(ing.materialId);
+                            const options = getAvailableRecipeMaterials().map(mat => `<option value="${mat.id}" ${String(ing.materialId) === String(mat.id) ? 'selected' : ''}>${mat.concepto} (${mat.unidad || 'unidad'})${mat.system ? ' - base' : ''}</option>`).join('');
+                            const selectedMaterial = getRecipeMaterialById(ing.materialId);
                         const unitOptions = selectedMaterial
                             ? getUnitOptions(selectedMaterial.unidadTipo).map(unit => `<option value="${unit}" ${normalizeUnitName(ing.unidad || selectedMaterial.unidad, selectedMaterial.unidadTipo) === unit ? 'selected' : ''}>${unit}</option>`).join('')
                             : '<option value="">-</option>';
@@ -1803,6 +1908,7 @@
                         </div>
                         <div class="mt-3">
                             <h4 class="font-semibold">${t.recipeIngredients}</h4>
+                                <p class="text-sm text-amber-800 mt-1">${t.recipePresetHint}</p>
                             ${ingredientsHtml}
                             <button class="mt-2 btn-primary px-3 py-1 rounded" onclick="addRecipeIngredient(${recipeIndex})">${t.addIngredient}</button>
                         </div>
@@ -1828,7 +1934,7 @@
                 let consumption = '-';
                 if (recipe) {
                     consumption = recipe.ingredientes.map(ing => {
-                        const mat = getMaterialById(ing.materialId);
+                            const mat = getRecipeMaterialById(ing.materialId);
                         if (!mat) return null;
                         const qty = getIngredientBaseQuantity(ing, mat) * (parseFloat(batch.cantidadLotes) || 0);
                         return `${mat.concepto}: ${formatNumber(qty)} ${mat.unidad}`;
@@ -1840,10 +1946,13 @@
 
                 list.innerHTML += `
                     <div class="mb-4 p-4 bg-amber-50 rounded border border-amber-200">
-                        <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-2">
                             <div>
-                                <label class="block text-sm font-medium mb-1">${t.batchName}</label>
-                                <input class="input-field w-full" value="${batch.nombre}" onchange="updateProductionBatch(${index}, 'nombre', this.value)">
+                                <label class="block text-sm font-medium mb-1">${t.batchClient}</label>
+                                <select class="input-field w-full" onchange="updateProductionBatch(${index}, 'clientId', this.value)">
+                                    <option value="">Selecciona cliente</option>
+                                    ${clientOptions}
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium mb-1">${t.batchRecipe}</label>
@@ -1857,13 +1966,6 @@
                                 <input class="input-field w-full" type="number" min="1" step="1" value="${batch.cantidadLotes}" onchange="updateProductionBatch(${index}, 'cantidadLotes', this.value)">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium mb-1">Cliente</label>
-                                <select class="input-field w-full" onchange="updateProductionBatch(${index}, 'clientId', this.value)">
-                                    <option value="">Selecciona cliente</option>
-                                    ${clientOptions}
-                                </select>
-                            </div>
-                            <div>
                                 <label class="block text-sm font-medium mb-1">${t.batchDate}</label>
                                 <input class="input-field w-full" type="date" value="${batch.fecha || ''}" onchange="updateProductionBatch(${index}, 'fecha', this.value)">
                             </div>
@@ -1872,7 +1974,7 @@
                             </div>
                         </div>
                         <div class="mt-2 flex justify-end gap-2">
-                            <button class="btn-primary px-3 py-2 rounded" onclick="generateBatchDocument(${index})">Generar Hoja de Produccion</button>
+                            <button class="btn-primary px-3 py-2 rounded" onclick="generateBatchDocument(${index})">${t.generateOrderDetail}</button>
                         </div>
                         <div class="mt-2">
                             <label class="block text-sm font-medium mb-1">${t.batchNotes}</label>
@@ -2000,7 +2102,7 @@
 
             const recipe = getRecipeById(batch.recipeId);
             if (!recipe) {
-                showMessage('Selecciona una receta para generar la hoja de produccion.', 'error');
+                showMessage('Selecciona una receta para generar el detalle de la orden.', 'error');
                 return;
             }
 
@@ -2012,7 +2114,7 @@
             const lotes = parseFloat(batch.cantidadLotes) || 0;
             const ingredients = recipe.ingredientes
                 .map((ing) => {
-                    const material = getMaterialById(ing.materialId);
+                        const material = getRecipeMaterialById(ing.materialId);
                     if (!material) return null;
                     const qtyBase = getIngredientBaseQuantity(ing, material);
                     const qtyTotal = qtyBase * lotes;
@@ -2031,9 +2133,9 @@
             const doc = new jsPDF();
 
             doc.setFontSize(16);
-            doc.text('HOJA DE PRODUCCION', 14, 16);
+            doc.text('DETALLE DE ORDEN', 14, 16);
             doc.setFontSize(11);
-            doc.text(`Lote: ${batch.nombre || `Lote ${batchIndex + 1}`}`, 14, 26);
+            doc.text(`Orden: ${batch.nombre || `Orden ${batchIndex + 1}`}`, 14, 26);
             doc.text(`Receta: ${recipe.nombre || 'Sin nombre'}`, 14, 32);
             doc.text(`Cantidad de lotes: ${formatNumber(lotes, 0)}`, 14, 38);
             doc.text(`Fecha: ${batch.fecha || new Date().toISOString().split('T')[0]}`, 14, 44);
@@ -2069,8 +2171,8 @@
                 doc.text(lines, 14, y);
             }
 
-            const safeBatchName = (batch.nombre || `lote-${batchIndex + 1}`).replace(/\s+/g, '-').toLowerCase();
-            doc.save(`hoja-produccion-${safeBatchName}.pdf`);
+            const safeBatchName = (batch.nombre || `orden-${batchIndex + 1}`).replace(/\s+/g, '-').toLowerCase();
+            doc.save(`detalle-orden-${safeBatchName}.pdf`);
         }
 
         // Formatear montos de dinero según la moneda seleccionada
@@ -2172,14 +2274,14 @@
             state.recipes[recipeIndex].ingredientes[ingredientIndex][field] = value;
 
             if (field === 'materialId') {
-                const selectedMaterial = getMaterialById(value);
+                    const selectedMaterial = getRecipeMaterialById(value);
                 state.recipes[recipeIndex].ingredientes[ingredientIndex].unidad = selectedMaterial
                     ? normalizeUnitName(selectedMaterial.unidad, selectedMaterial.unidadTipo)
                     : '';
             }
 
             if (field === 'unidad') {
-                const selectedMaterial = getMaterialById(state.recipes[recipeIndex].ingredientes[ingredientIndex].materialId);
+                    const selectedMaterial = getRecipeMaterialById(state.recipes[recipeIndex].ingredientes[ingredientIndex].materialId);
                 if (selectedMaterial) {
                     state.recipes[recipeIndex].ingredientes[ingredientIndex].unidad = normalizeUnitName(value, selectedMaterial.unidadTipo);
                 }
@@ -2307,7 +2409,7 @@
                     unitPrice: 'Precio Unit.',
                     subtotal: 'Subtotal',
                     labor: 'Mano de Obra',
-                    additionalCosts: 'Costos Adicionales',
+                    additionalCosts: 'Gastos Adicionales',
                     totalCosts: 'Total Costos',
                     myProfit: 'Mi Ganancia',
                     decorationValue: 'Valor de Produccion',
@@ -2323,7 +2425,7 @@
                     materials: 'Materiales',
                     totalMaterials: 'Total Materiales',
                     totalAssistants: 'Total Asistentes',
-                    totalExpenses: 'Total Gastos'
+                    totalExpenses: 'Total Gastos Adicionales'
                 },
                 en: {
                     title: 'BAKERY QUOTATION',
@@ -2344,7 +2446,7 @@
                     unitPrice: 'Unit Price',
                     subtotal: 'Subtotal',
                     labor: 'Labor',
-                    additionalCosts: 'Additional Costs',
+                    additionalCosts: 'Additional Expenses',
                     totalCosts: 'Total Costs',
                     myProfit: 'My Profit',
                     decorationValue: 'Preparation Value',
@@ -2360,7 +2462,7 @@
                     materials: 'Materials',
                     totalMaterials: 'Total Materials',
                     totalAssistants: 'Total Assistants',
-                    totalExpenses: 'Total Expenses'
+                    totalExpenses: 'Total Additional Expenses'
                 },
                 fr: {
                     title: 'DEVIS BOULANGERIE',
@@ -2381,7 +2483,7 @@
                     unitPrice: 'Prix Unit.',
                     subtotal: 'Subtotal',
                     labor: 'Main d\'œuvre',
-                    additionalCosts: 'Coûts Additionnels',
+                    additionalCosts: 'Dépenses Additionnelles',
                     totalCosts: 'Coûts Totaux',
                     myProfit: 'Mon Profit',
                     decorationValue: 'Valeur de la Préparation',
@@ -2397,7 +2499,7 @@
                     materials: 'Matériaux',
                     totalMaterials: 'Total Matériaux',
                     totalAssistants: 'Total Assistants',
-                    totalExpenses: 'Total Dépenses'
+                    totalExpenses: 'Total Dépenses Additionnelles'
                 }
 
             };
@@ -2607,6 +2709,12 @@
                 state.companyConfig[id] = e.target.value;
             });
         });
+            document.getElementById('valorHoraTrabajo').addEventListener('input', (e) => {
+                state.companyConfig.valorHoraTrabajo = parseFloat(e.target.value) || 0;
+                renderRecipes();
+                renderProductionBatches();
+                calculateResults();
+            });
         // Evento para cargar imagen del logo
         document.getElementById('logo').addEventListener('change', (e) => {
             const file = e.target.files[0];
@@ -2721,15 +2829,13 @@
         });
 
         document.getElementById('addRecipe').addEventListener('click', () => {
-            const defaultMaterialId = state.materials.length ? state.materials[0].id : '';
-            const defaultMaterial = getMaterialById(defaultMaterialId);
             const newRecipeId = getNextId();
             state.recipes.push({
                 id: newRecipeId,
                 nombre: 'Nueva receta',
                 descripcion: '',
                 rendimiento: 1,
-                ingredientes: [{ materialId: defaultMaterialId, cantidad: 0, unidad: defaultMaterial ? defaultMaterial.unidad : '' }]
+                    ingredientes: getDefaultRecipeIngredients()
             });
             // Expandir automáticamente la nueva receta
             state.expandedRecipes.add(newRecipeId);
@@ -2753,16 +2859,15 @@
             renderProductionBatches();
             calculateResults();
 
-            const newBatchIndex = state.productionBatches.length - 1;
             if (defaultRecipeId) {
-                generateBatchDocument(newBatchIndex);
+                showMessage('Orden creada. Completa los datos y genera el detalle cuando este listo.', 'success');
             } else {
-                showMessage('Lote creado. Asigna una receta para generar la hoja de produccion.', 'error');
+                showMessage('Orden creada. Agrega una receta para continuar con el detalle de la orden.', 'success');
             }
         });
 
         document.getElementById('addExpense').addEventListener('click', () => {
-            state.expenses.push({ id: Date.now(), concepto: 'Nuevo Gasto', precio: 0 });
+              state.expenses.push({ id: Date.now(), concepto: 'Nuevo Gasto Adicional', precio: 0 });
             renderExpenses();
             calculateResults();
         });
