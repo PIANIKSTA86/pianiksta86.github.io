@@ -309,7 +309,7 @@
                         </div>
                         <div>
                             <label id="laborPctTh" for="manoObraPctInput" class="block text-sm font-medium mb-1">Costos Indirectos (%)</label>
-                            <input id="manoObraPctInput" type="number" step="0.01" class="input-field w-full" value="30">
+                            <input id="manoObraPctInput" type="number" step="0.01" class="input-field w-full" value="0">
                         </div>
                         <div>
                             <label id="assistantsTitle" class="block text-sm font-medium mb-1">Asistentes</label>
@@ -376,7 +376,7 @@
                             </div>
                             <div>
                                 <label for="tasaImpuesto" class="block text-sm font-medium mb-1">Porcentaje de Impuesto (%)</label>
-                                <input id="tasaImpuesto" type="number" step="0.01" class="input-field w-full" value="19">
+                                <input id="tasaImpuesto" type="number" step="0.01" class="input-field w-full" value="0">
                             </div>
                             <div>
                                 <label for="tipoImpuesto" class="block text-sm font-medium mb-1">Tipo de Impuesto</label>
@@ -516,13 +516,13 @@
             // Parámetros de cálculo
             calculations: {
                 nombreImpuesto: 'IVA',
-                tasaImpuesto: 19,
+                tasaImpuesto: 0,
                 tipoImpuesto: 'excluido',
                 nombreImpuesto2: '',
                 tasaImpuesto2: 0,
                 tipoImpuesto2: 'excluido',
-                manoObraPct: 30,
-                rentabilidadPct: 45,
+                manoObraPct: 0,
+                rentabilidadPct: 35,
                 asistente1: 0,
                 asistente2: 0,
                 asistente3: 0,
@@ -1837,6 +1837,13 @@
             batch.items = items;
         }
 
+        function getRecipeScaleFactor(recipe, requiredUnits) {
+            const requested = parseFloat(requiredUnits) || 0;
+            const yieldUnits = parseFloat(recipe && recipe.rendimiento) || 0;
+            if (requested <= 0 || yieldUnits <= 0) return 0;
+            return requested / yieldUnits;
+        }
+
         function getBatchMaterialRequirements(batch) {
             const requirementsByMaterial = {};
             let totalCost = 0;
@@ -1845,14 +1852,15 @@
                 const recipe = getRecipeById(item.recipeId);
                 if (!recipe) return;
 
-                const lotes = parseFloat(item.cantidadLotes) || 0;
-                if (lotes <= 0) return;
+                const requiredUnits = parseFloat(item.cantidadLotes) || 0;
+                const scaleFactor = getRecipeScaleFactor(recipe, requiredUnits);
+                if (scaleFactor <= 0) return;
 
                 recipe.ingredientes.forEach((ing) => {
                     const material = getRecipeMaterialById(ing.materialId);
                     if (!material) return;
 
-                    const qty = getIngredientBaseQuantity(ing, material) * lotes;
+                    const qty = getIngredientBaseQuantity(ing, material) * scaleFactor;
                     if (qty <= 0) return;
 
                     if (!requirementsByMaterial[material.id]) {
@@ -2130,6 +2138,23 @@
             });
         }
 
+        function calculatePreparationFromMargin(totalCostos, marginPct) {
+            const normalizedTotal = parseFloat(totalCostos) || 0;
+            const marginDecimal = Math.max(0, (parseFloat(marginPct) || 0) / 100);
+            if (marginDecimal >= 1) {
+                return {
+                    valorPreparacion: normalizedTotal,
+                    miGanancia: 0
+                };
+            }
+
+            const valorPreparacion = normalizedTotal / (1 - marginDecimal);
+            return {
+                valorPreparacion,
+                miGanancia: valorPreparacion - normalizedTotal
+            };
+        }
+
         // Calcular los resultados financieros del cotizador
         function calculateResults() {
             const productionRequirements = getProductionMaterialRequirements();
@@ -2138,8 +2163,9 @@
             const totalAsistentes = state.calculations.asistente1 + state.calculations.asistente2 + state.calculations.asistente3 + state.calculations.asistente4;
             const totalGastos = state.expenses.reduce((sum, exp) => sum + (parseFloat(exp.precio) || 0), 0);
             const totalCostos = totalMateriales + totalManoObra + totalAsistentes;
-            const miGanancia = totalCostos * (state.calculations.rentabilidadPct / 100);
-            const subtotalFinal = totalCostos + miGanancia;
+            const preparationValues = calculatePreparationFromMargin(totalCostos, state.calculations.rentabilidadPct);
+            const subtotalFinal = preparationValues.valorPreparacion;
+            const miGanancia = preparationValues.miGanancia;
             const precioBase = subtotalFinal + totalGastos;
             let baseImponible, impuesto, precioFinal;
             if (state.calculations.tipoImpuesto === 'noimpuesto') {
@@ -2219,8 +2245,9 @@
 
             const batchItems = getBatchItems(batch).filter((item) => {
                 const recipe = getRecipeById(item.recipeId);
-                const lotes = parseFloat(item.cantidadLotes) || 0;
-                return recipe && lotes > 0;
+                const requiredUnits = parseFloat(item.cantidadLotes) || 0;
+                const scaleFactor = recipe ? getRecipeScaleFactor(recipe, requiredUnits) : 0;
+                return recipe && scaleFactor > 0;
             });
 
             if (!batchItems.length) {
@@ -2236,14 +2263,15 @@
             const requirementByMaterial = {};
             batchItems.forEach((item) => {
                 const recipe = getRecipeById(item.recipeId);
-                const lotes = parseFloat(item.cantidadLotes) || 0;
-                if (!recipe || lotes <= 0) return;
+                const requiredUnits = parseFloat(item.cantidadLotes) || 0;
+                const scaleFactor = recipe ? getRecipeScaleFactor(recipe, requiredUnits) : 0;
+                if (!recipe || scaleFactor <= 0) return;
 
                 recipe.ingredientes.forEach((ing) => {
                     const material = getRecipeMaterialById(ing.materialId);
                     if (!material) return;
 
-                    const qty = getIngredientBaseQuantity(ing, material) * lotes;
+                    const qty = getIngredientBaseQuantity(ing, material) * scaleFactor;
                     if (qty <= 0) return;
 
                     if (!requirementByMaterial[material.id]) {
@@ -2263,7 +2291,9 @@
             const recipeLines = batchItems.map((item) => {
                 const recipe = getRecipeById(item.recipeId);
                 const recipeName = recipe ? (recipe.nombre || 'Sin nombre') : 'Receta no encontrada';
-                return `${recipeName} x ${formatNumber(item.cantidadLotes, 0)} lote(s)`;
+                const requiredUnits = parseFloat(item.cantidadLotes) || 0;
+                const scaleFactor = recipe ? getRecipeScaleFactor(recipe, requiredUnits) : 0;
+                return `${recipeName}: ${formatNumber(requiredUnits, 0)} und (x ${formatNumber(scaleFactor, 2)} receta)`;
             });
 
             const { jsPDF } = window.jspdf;
@@ -2505,11 +2535,13 @@
             const batch = state.productionBatches[batchIndex];
             if (!batch) return;
 
+            const defaultRecipe = state.recipes.length ? state.recipes[0] : null;
+            const defaultRequiredUnits = defaultRecipe ? (parseFloat(defaultRecipe.rendimiento) || 1) : 1;
             batch.items = getBatchItems(batch);
             batch.items.push({
                 id: getNextId(),
-                recipeId: state.recipes.length ? state.recipes[0].id : '',
-                cantidadLotes: 1
+                recipeId: defaultRecipe ? defaultRecipe.id : '',
+                cantidadLotes: defaultRequiredUnits
             });
             syncLegacyBatchFields(batch);
             renderProductionBatches();
@@ -2586,14 +2618,15 @@
             sourceBatches.forEach((batch) => {
                 getBatchItems(batch).forEach((item) => {
                     const recipe = getRecipeById(item.recipeId);
-                    const qty = parseFloat(item.cantidadLotes) || 0;
-                    if (!recipe || qty <= 0) return;
+                    const requiredUnits = parseFloat(item.cantidadLotes) || 0;
+                    const scaleFactor = recipe ? getRecipeScaleFactor(recipe, requiredUnits) : 0;
+                    if (!recipe || scaleFactor <= 0) return;
 
-                    const baseCost = calculateRecipeCost(recipe) * qty;
+                    const baseCost = calculateRecipeCost(recipe) * scaleFactor;
                     baseItems.push({
                         no: rowNumber,
                         descripcion: recipe.nombre || 'Receta sin nombre',
-                        cantidad: qty,
+                        cantidad: requiredUnits,
                         baseCost
                     });
                     rowNumber += 1;
@@ -2608,8 +2641,9 @@
                 + (parseFloat(state.calculations.asistente4) || 0);
             const totalGastos = state.expenses.reduce((sum, exp) => sum + (parseFloat(exp.precio) || 0), 0);
             const totalCostos = totalMateriales + totalManoObra + totalAsistentes;
-            const miGanancia = totalCostos * (state.calculations.rentabilidadPct / 100);
-            const subtotalFinal = totalCostos + miGanancia;
+            const preparationValues = calculatePreparationFromMargin(totalCostos, state.calculations.rentabilidadPct);
+            const subtotalFinal = preparationValues.valorPreparacion;
+            const miGanancia = preparationValues.miGanancia;
             const precioBase = subtotalFinal + totalGastos;
 
             let baseImponible = precioBase;
@@ -2646,18 +2680,22 @@
                 const weight = totalMateriales > 0
                     ? (item.baseCost / totalMateriales)
                     : (baseItems.length ? (1 / baseItems.length) : 0);
+                const totalItem = distributionTarget * weight;
                 return {
                     no: item.no,
                     descripcion: item.descripcion,
                     cantidad: item.cantidad,
-                    precio: distributionTarget * weight
+                    precioUnitario: item.cantidad > 0 ? (totalItem / item.cantidad) : 0,
+                    totalItem
                 };
             });
 
             if (distributedItems.length) {
-                const sumDistributed = distributedItems.reduce((sum, item) => sum + item.precio, 0);
+                const sumDistributed = distributedItems.reduce((sum, item) => sum + item.totalItem, 0);
                 const diff = distributionTarget - sumDistributed;
-                distributedItems[distributedItems.length - 1].precio += diff;
+                const lastItem = distributedItems[distributedItems.length - 1];
+                lastItem.totalItem += diff;
+                lastItem.precioUnitario = lastItem.cantidad > 0 ? (lastItem.totalItem / lastItem.cantidad) : 0;
             }
 
             return {
@@ -2726,10 +2764,11 @@
                     email: 'Email',
                     contact: 'Contacto',
                     notes: 'Notas',
-                    itemNo: 'No. Item',
+                    itemNo: 'Item',
                     itemDescription: 'Descripcion',
                     quantity: 'Cantidad',
-                    price: 'Precio',
+                    unitPrice: 'Precio Unit.',
+                    itemTotal: 'Total Item',
                     subtotalLabel: 'Sub total',
                     totalLabel: 'Total',
                     thanks: 'Gracias por su preferencia.',
@@ -2748,10 +2787,11 @@
                     email: 'Email',
                     contact: 'Contact',
                     notes: 'Notes',
-                    itemNo: 'No. Item',
+                    itemNo: 'Item',
                     itemDescription: 'Description',
                     quantity: 'Quantity',
-                    price: 'Price',
+                    unitPrice: 'Unit Price',
+                    itemTotal: 'Item Total',
                     subtotalLabel: 'Subtotal',
                     totalLabel: 'Total',
                     thanks: 'Thank you for your preference. please contact us for any questions.',
@@ -2770,10 +2810,11 @@
                     email: 'Email',
                     contact: 'Contact',
                     notes: 'Notes',
-                    itemNo: 'No. Article',
+                    itemNo: 'Art.',
                     itemDescription: 'Description',
                     quantity: 'Quantité',
-                    price: 'Prix',
+                    unitPrice: 'Prix Unit.',
+                    itemTotal: 'Total Article',
                     subtotalLabel: 'Sous-total',
                     totalLabel: 'Total',
                     thanks: 'Merci de votre préférence. veuillez nous contacter pour toute question.',
@@ -2843,7 +2884,8 @@
                     no: 1,
                     descripcion: (clientData.descripcion || clientData.tipoServicio || 'Pedido del cliente'),
                     cantidad: 1,
-                    precio: invoiceTotals.subtotal
+                    precioUnitario: invoiceTotals.subtotal,
+                    totalItem: invoiceTotals.subtotal
                 });
             }
 
@@ -2854,9 +2896,10 @@
             doc.rect(14, y, 182, 8, 'FD');
             doc.setFont(undefined, 'bold');
             doc.text(pdfT.itemNo, 16, y + 5.5);
-            doc.text(pdfT.itemDescription, 34, y + 5.5);
-            doc.text(pdfT.quantity, 136, y + 5.5);
-            doc.text(pdfT.price, 166, y + 5.5);
+            doc.text(pdfT.itemDescription, 28, y + 5.5);
+            doc.text(pdfT.quantity, 124, y + 5.5, { align: 'right' });
+            doc.text(pdfT.unitPrice, 158, y + 5.5, { align: 'right' });
+            doc.text(pdfT.itemTotal, 196, y + 5.5, { align: 'right' });
 
             y += 10;
             doc.setFont(undefined, 'normal');
@@ -2873,9 +2916,10 @@
                     doc.rect(14, y, 182, 8, 'FD');
                     doc.setFont(undefined, 'bold');
                     doc.text(pdfT.itemNo, 16, y + 5.5);
-                    doc.text(pdfT.itemDescription, 34, y + 5.5);
-                    doc.text(pdfT.quantity, 136, y + 5.5);
-                    doc.text(pdfT.price, 166, y + 5.5);
+                    doc.text(pdfT.itemDescription, 28, y + 5.5);
+                    doc.text(pdfT.quantity, 124, y + 5.5, { align: 'right' });
+                    doc.text(pdfT.unitPrice, 158, y + 5.5, { align: 'right' });
+                    doc.text(pdfT.itemTotal, 196, y + 5.5, { align: 'right' });
                     y += 10;
                     doc.setFont(undefined, 'normal');
                 }
@@ -2883,9 +2927,10 @@
                 // Salto de linea antes de cada item para mejorar legibilidad.
                 y += extraLineGap;
                 doc.text(String(item.no), 16, y);
-                doc.text(descLines, 34, y);
-                doc.text(formatNumber(item.cantidad, 0), 138, y);
-                doc.text(formatCurrency(item.precio), 164, y);
+                doc.text(descLines, 28, y);
+                doc.text(formatNumber(item.cantidad, 0), 124, y, { align: 'right' });
+                doc.text(formatCurrency(item.precioUnitario), 158, y, { align: 'right' });
+                doc.text(formatCurrency(item.totalItem), 196, y, { align: 'right' });
                 y += rowHeight;
             });
 
@@ -3149,12 +3194,13 @@
         });
 
         document.getElementById('addProductionBatch').addEventListener('click', () => {
-            const defaultRecipeId = state.recipes.length ? state.recipes[0].id : '';
+            const defaultRecipe = state.recipes.length ? state.recipes[0] : null;
+            const defaultRecipeId = defaultRecipe ? defaultRecipe.id : '';
             const defaultClientId = state.clients.length ? state.clients[0].id : null;
             const defaultItem = {
                 id: getNextId(),
                 recipeId: defaultRecipeId,
-                cantidadLotes: 1
+                cantidadLotes: defaultRecipe ? (parseFloat(defaultRecipe.rendimiento) || 1) : 1
             };
             state.productionBatches.push({
                 id: getNextId(),
