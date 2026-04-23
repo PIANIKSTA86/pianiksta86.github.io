@@ -209,11 +209,19 @@
                     <div>
                         <label for="moneda" class="block text-sm font-medium mb-1">Moneda</label>
                         <select id="moneda" class="input-field w-full">
-                            <option value="COP">COP</option>
-                            <option value="USD">USD</option>
-                            <option value="EUR">EUR</option>
-                            <option value="CAD">CAD</option>
-                            <option value="GBP">GBP</option>
+                            <option value="COP">COP - Peso Colombiano</option>
+                            <option value="USD">USD - Dolar Estadounidense</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="CAD">CAD - Dolar Canadiense</option>
+                            <option value="GBP">GBP - Libra Esterlina</option>
+                            <option value="ARS">ARS - Peso Argentino</option>
+                            <option value="BRL">BRL - Real Brasileño</option>
+                            <option value="CLP">CLP - Peso Chileno</option>
+                            <option value="MXN">MXN - Peso Mexicano</option>
+                            <option value="PEN">PEN - Sol Peruano</option>
+                            <option value="UYU">UYU - Peso Uruguayo</option>
+                            <option value="PYG">PYG - Guarani Paraguayo</option>
+                            <option value="DOP">DOP - Peso Dominicano</option>
                         </select>
                     </div>
                     <div>
@@ -248,7 +256,7 @@
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Inventario de Insumos</h2>
                 <button id="addMaterial" class="btn-primary px-4 py-2 rounded mb-4">Agregar Insumo</button>
-                <p class="text-sm text-amber-800 mb-3">Cada insumo puede medirse por peso, volumen o cantidad. Define su unidad base para usarlo luego en recetas y produccion.</p>
+                <p class="text-sm text-amber-800 mb-3">Ingresa los ingredientes, empaques y todo tipo de material necesario para la estructura, presentación y transporte final del producto. Cada insumo puede medirse por peso, volumen o cantidad. Define su unidad base para usarlo luego en recetas y produccion.</p>
                 <div id="materialsList"></div>
             </div>
         </div>
@@ -663,7 +671,7 @@
                 subtitleMobile: 'Gestion offline para panaderia y reposteria',
                 saveData: 'Guardar Datos',
                 configTab: 'Configuración',
-                clientTab: 'Cliente',
+                clientTab: 'Clientes',
                 materialsTab: 'Materiales',
                 recipesTab: 'Recetas',
                 productionTab: 'Produccion',
@@ -673,7 +681,7 @@
                 profitabilityTab: 'Rentabilidad',
                 pdfTab: 'PDF',
                 helpTab: 'Ayuda',
-                companyConfig: 'Configuración de Empresa',
+                companyConfig: 'Datos de mi Empresa',
                 companyName: 'Empresa',
                 phone: 'Teléfono',
                 address: 'Dirección',
@@ -683,7 +691,7 @@
                 logoDesc: 'Selecciona una imagen para el logo en el PDF',
                 language: 'Idioma',
                 currency: 'Moneda',
-                clientInfo: 'Información del Cliente',
+                clientInfo: 'Información de Clientes',
                 clientName: 'Nombre',
                 serviceType: 'Tipo de Servicio',
                 description: 'Descripción',
@@ -712,7 +720,7 @@
                 addBatch: 'Nueva Orden de Produccion',
                 batchName: 'Lote',
                 batchRecipe: 'Receta',
-                batchQty: 'Cantidad Lotes',
+                batchQty: 'Cantidad requerida',
                 batchClient: 'Cliente',
                 batchStatus: 'Estado',
                 batchDate: 'Fecha',
@@ -791,7 +799,7 @@
                 subtitleMobile: 'Offline management for bakery and pastry',
                 saveData: 'Save Data',
                 configTab: 'Configuration',
-                clientTab: 'Client',
+                clientTab: 'Clients',
                 materialsTab: 'Materials',
                 recipesTab: 'Recipes',
                 productionTab: 'Production',
@@ -811,7 +819,7 @@
                 logoDesc: 'Select an image for the logo in the PDF',
                 language: 'Language',
                 currency: 'Currency',
-                clientInfo: 'Client Information',
+                clientInfo: 'Clients Information',
                 clientName: 'Name',
                 serviceType: 'Service Type',
                 description: 'Description',
@@ -2182,7 +2190,21 @@
                 }
 
         function formatCurrency(amount) {
-            const symbols = { COP: '$', USD: '$', EUR: '€', CAD: 'C$', GBP: '£' };
+            const symbols = {
+                COP: '$',
+                USD: '$',
+                EUR: '€',
+                CAD: 'C$',
+                GBP: '£',
+                ARS: '$',
+                BRL: 'R$',
+                CLP: '$',
+                MXN: '$',
+                PEN: 'S/',
+                UYU: '$U',
+                PYG: '₲',
+                DOP: 'RD$'
+            };
             const symbol = symbols[state.moneda] || '$';
 
             // Formatear con separador de miles y 2 decimales
