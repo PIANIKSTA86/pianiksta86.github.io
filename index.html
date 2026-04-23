@@ -274,7 +274,7 @@
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Produccion</h2>
                 <button id="addProductionBatch" class="btn-primary px-4 py-2 rounded mb-4">Nueva Orden de Produccion</button>
-                <p class="text-sm text-amber-800 mb-3">Planifica lotes por receta, controla estado de produccion y calcula consumo estimado de insumos.</p>
+                <p class="text-sm text-amber-800 mb-3">Crea ordenes por cliente y fecha, asociando varias recetas en una sola orden para consolidar el consumo estimado y el costo total.</p>
                 <div id="productionList"></div>
             </div>
         </div>
@@ -290,130 +290,136 @@
         <div id="rentabilidad" class="tab-content">
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Cálculos de Rentabilidad</h2>
-                <div class="mb-6">
-                    <div class="table-scroll">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th id="conceptTh">Concepto</th>
-                                    <th id="totalMaterialsTh">Total Materiales</th>
-                                    <th id="laborPctTh">Costos Indirectos (%)</th>
-                                    <th id="totalLaborTh">Total Costos Indirectos</th>
-                                </tr>
-                            </thead>
-                            <tbody id="manoObraTable">
-                                <tr>
-                                    <td id="laborTd">Costo Directo</td>
-                                    <td id="totalMaterialesDisplay">-</td>
-                                    <td><input id="manoObraPctInput" type="number" step="0.01" class="input-field w-full" value="30"></td>
-                                    <td id="totalManoObraDisplay">-</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-lg border border-amber-200 bg-amber-50">
+                        <div id="totalMaterialsTh" class="text-sm font-semibold text-amber-800">Total Materiales</div>
+                        <div id="totalMaterialesDisplay" class="text-2xl font-bold text-amber-900 mt-1">-</div>
+                    </div>
+                    <div class="p-4 rounded-lg border border-amber-200 bg-amber-50">
+                        <div id="totalLaborTh" class="text-sm font-semibold text-amber-800">Total Costos Indirectos</div>
+                        <div id="totalManoObraDisplay" class="text-2xl font-bold text-amber-900 mt-1">-</div>
                     </div>
                 </div>
-                <div class="mb-6">
-                    <h3 id="assistantsTitle" class="text-lg font-semibold mb-2">Asistentes</h3>
-                    <div class="table-scroll">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th id="assistant1Th">Asistente 1</th>
-                                    <th id="assistant2Th">Asistente 2</th>
-                                    <th id="assistant3Th">Asistente 3</th>
-                                    <th id="assistant4Th">Asistente 4</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><input id="asistente1" type="number" step="0.01" class="input-field w-full"></td>
-                                    <td><input id="asistente2" type="number" step="0.01" class="input-field w-full"></td>
-                                    <td><input id="asistente3" type="number" step="0.01" class="input-field w-full"></td>
-                                    <td><input id="asistente4" type="number" step="0.01" class="input-field w-full"></td>
-                                </tr>
-                            </tbody>
-                        </table>
+
+                <div class="mb-6 p-4 rounded-lg border border-amber-200 bg-white">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                        <div>
+                            <label id="conceptTh" class="block text-sm font-medium mb-1">Concepto</label>
+                            <div id="laborTd" class="px-3 py-2 bg-amber-50 border border-amber-200 rounded font-semibold">Costo Directo</div>
+                        </div>
+                        <div>
+                            <label id="laborPctTh" for="manoObraPctInput" class="block text-sm font-medium mb-1">Costos Indirectos (%)</label>
+                            <input id="manoObraPctInput" type="number" step="0.01" class="input-field w-full" value="30">
+                        </div>
+                        <div>
+                            <label id="assistantsTitle" class="block text-sm font-medium mb-1">Asistentes</label>
+                            <div class="text-xs text-gray-600">Valores directos que se suman al costo total.</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mt-4">
+                        <div>
+                            <label id="assistant1Th" for="asistente1" class="block text-sm font-medium mb-1">Asistente 1</label>
+                            <input id="asistente1" type="number" step="0.01" class="input-field w-full">
+                        </div>
+                        <div>
+                            <label id="assistant2Th" for="asistente2" class="block text-sm font-medium mb-1">Asistente 2</label>
+                            <input id="asistente2" type="number" step="0.01" class="input-field w-full">
+                        </div>
+                        <div>
+                            <label id="assistant3Th" for="asistente3" class="block text-sm font-medium mb-1">Asistente 3</label>
+                            <input id="asistente3" type="number" step="0.01" class="input-field w-full">
+                        </div>
+                        <div>
+                            <label id="assistant4Th" for="asistente4" class="block text-sm font-medium mb-1">Asistente 4</label>
+                            <input id="asistente4" type="number" step="0.01" class="input-field w-full">
+                        </div>
                     </div>
                 </div>
-                <div class="mb-6">
-                    <h3 id="profitSettlementTitle" class="text-lg font-semibold mb-2">Liquidación de Rentabilidad</h3>
-                    <div class="table-scroll table-wide">
-                        <table class="table">
-                            <thead>
-                                <tr>
-                                    <th id="totalCostsTh">Total Costos</th>
-                                    <th id="profitPctTh">% Rentabilidad</th>
-                                    <th id="myProfitTh">Mi Ganancia</th>
-                                    <th id="decorationValueTh">Valor Preparacion</th>
-                                    <th id="additionalExpensesTh">Gastos Adicionales</th>
-                                    <th id="totalWithoutTaxTh">Total sin Impuesto</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td id="totalCostosDisplay">-</td>
-                                    <td><input id="rentabilidadPct" type="number" step="0.01" class="input-field w-full" value="45"></td>
-                                    <td id="miGananciaDisplay">-</td>
-                                    <td id="subtotalFinalDisplay">-</td>
-                                    <td id="gastosAdicionalesDisplay">-</td>
-                                    <td id="valorTotalDisplay">-</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="mt-6">
-                    <h3 id="taxSettlementTitle" class="text-lg font-semibold mb-2">Liquidación de Impuestos</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
-                        <div>
-                            <label for="nombreImpuesto" class="block text-sm font-medium mb-1">Nombre del Impuesto</label>
-                            <input id="nombreImpuesto" type="text" class="input-field w-full" value="IVA">
-                        </div>
-                        <div>
-                            <label for="tasaImpuesto" class="block text-sm font-medium mb-1">Porcentaje de Impuesto (%)</label>
-                            <input id="tasaImpuesto" type="number" step="0.01" class="input-field w-full" value="19">
-                        </div>
-                        <div>
-                            <label for="tipoImpuesto" class="block text-sm font-medium mb-1">Tipo de Impuesto</label>
-                            <select id="tipoImpuesto" class="input-field">
-                                <option value="excluido">Excluido</option>
-                                <option value="incluido">Incluido</option>
-                                <option value="noimpuesto">Sin Impuesto</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label id="baseImponibleLabel" class="block text-sm font-medium mb-1">Base Imponible</label>
-                            <div id="baseImponibleDisplay" class="px-3 py-2 bg-white border border-gray-300 rounded text-center font-medium"></div>
-                        </div>
-                        <div>
-                            <label id="impuestoLabel" class="block text-sm font-medium mb-1">Monto del Impuesto</label>
-                            <div id="impuestoDisplay" class="px-3 py-2 bg-white border border-gray-300 rounded text-center font-medium"></div>
+
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <div class="p-4 rounded-lg border border-amber-200 bg-white">
+                        <h3 id="profitSettlementTitle" class="text-lg font-semibold mb-4">Liquidación de Rentabilidad</h3>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                                <div id="totalCostsTh" class="font-medium">Total Costos</div>
+                                <div class="md:col-span-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded" id="totalCostosDisplay">-</div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                                <label id="profitPctTh" for="rentabilidadPct" class="font-medium">% Rentabilidad</label>
+                                <div class="md:col-span-2"><input id="rentabilidadPct" type="number" step="0.01" class="input-field w-full" value="45"></div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                                <div id="myProfitTh" class="font-medium">Mi Ganancia</div>
+                                <div class="md:col-span-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded" id="miGananciaDisplay">-</div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                                <div id="decorationValueTh" class="font-medium">Valor Preparacion</div>
+                                <div class="md:col-span-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded" id="subtotalFinalDisplay">-</div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                                <div id="additionalExpensesTh" class="font-medium">Gastos Adicionales</div>
+                                <div class="md:col-span-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded" id="gastosAdicionalesDisplay">-</div>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-center">
+                                <div id="totalWithoutTaxTh" class="font-medium">Precio sin Impuesto</div>
+                                <div class="md:col-span-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded font-semibold" id="valorTotalDisplay">-</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
-                        <div>
-                          <!--  <label for="nombreImpuesto2" class="block text-sm font-medium mb-1">Nombre del Segundo Impuesto</label> -->
-                            <input id="nombreImpuesto2" type="text" class="input-field w-full" value="">
+                    <div class="p-4 rounded-lg border border-amber-200 bg-white h-full">
+                        <h3 id="taxSettlementTitle" class="text-lg font-semibold mb-4">Liquidación de Impuestos</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                            <div>
+                                <label for="nombreImpuesto" class="block text-sm font-medium mb-1">Nombre del Impuesto</label>
+                                <input id="nombreImpuesto" type="text" class="input-field w-full" value="IVA">
+                            </div>
+                            <div>
+                                <label for="tasaImpuesto" class="block text-sm font-medium mb-1">Porcentaje de Impuesto (%)</label>
+                                <input id="tasaImpuesto" type="number" step="0.01" class="input-field w-full" value="19">
+                            </div>
+                            <div>
+                                <label for="tipoImpuesto" class="block text-sm font-medium mb-1">Tipo de Impuesto</label>
+                                <select id="tipoImpuesto" class="input-field w-full">
+                                    <option value="excluido">Excluido</option>
+                                    <option value="incluido">Incluido</option>
+                                    <option value="noimpuesto">Sin Impuesto</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label id="impuestoLabel" class="block text-sm font-medium mb-1">Monto del Impuesto</label>
+                                <div id="impuestoDisplay" class="px-3 py-2 bg-amber-50 border border-amber-200 rounded text-center font-medium min-h-[42px] flex items-center justify-center"></div>
+                            </div>
+                            <div class="hidden">
+                                <label id="baseImponibleLabel" class="block text-sm font-medium mb-1">Base Imponible</label>
+                                <div id="baseImponibleDisplay" class="px-3 py-2 bg-white border border-gray-300 rounded text-center font-medium"></div>
+                            </div>
                         </div>
-                        <div>
-                           <!-- <label for="tasaImpuesto2" class="block text-sm font-medium mb-1">Porcentaje de Impuesto (%)</label> -->
-                            <input id="tasaImpuesto2" type="number" step="0.01" class="input-field w-full" value="0">
-                        </div>
-                        <div>
-                           <!-- <label for="tipoImpuesto2" class="block text-sm font-medium mb-1">Tipo de Impuesto</label> -->
-                            <select id="tipoImpuesto2" class="input-field">
-                                <option value="excluido">Excluido</option>
-                                <option value="incluido">Incluido</option>
-                                <option value="noimpuesto">Sin Impuesto</option>
-                            </select>
-                        </div>
-                        <div>
-                          <!--  <label id="baseImponibleLabel2" class="block text-sm font-medium mb-1">Base Imponible</label> -->
-                            <div id="baseImponibleDisplay2" class="px-3 py-2 bg-white border border-gray-300 rounded text-center font-medium"></div>
-                        </div>
-                        <div>
-                          <!--  <label id="impuestoLabel2" class="block text-sm font-medium mb-1">Monto del Impuesto</label> -->
-                            <div id="impuestoDisplay2" class="px-3 py-2 bg-white border border-gray-300 rounded text-center font-medium"></div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <!--  <label for="nombreImpuesto2" class="block text-sm font-medium mb-1">Nombre del Segundo Impuesto</label> -->
+                                <input id="nombreImpuesto2" type="text" class="input-field w-full" value="">
+                            </div>
+                            <div>
+                               <!-- <label for="tasaImpuesto2" class="block text-sm font-medium mb-1">Porcentaje de Impuesto (%)</label> -->
+                                <input id="tasaImpuesto2" type="number" step="0.01" class="input-field w-full" value="0">
+                            </div>
+                            <div>
+                               <!-- <label for="tipoImpuesto2" class="block text-sm font-medium mb-1">Tipo de Impuesto</label> -->
+                                <select id="tipoImpuesto2" class="input-field w-full">
+                                    <option value="excluido">Excluido</option>
+                                    <option value="incluido">Incluido</option>
+                                    <option value="noimpuesto">Sin Impuesto</option>
+                                </select>
+                            </div>
+                            <div>
+                              <!--  <label id="impuestoLabel2" class="block text-sm font-medium mb-1">Monto del Impuesto</label> -->
+                                <div id="impuestoDisplay2" class="px-3 py-2 bg-amber-50 border border-amber-200 rounded text-center font-medium min-h-[42px] flex items-center justify-center"></div>
+                            </div>
+                            <div class="hidden">
+                              <!--  <label id="baseImponibleLabel2" class="block text-sm font-medium mb-1">Base Imponible</label> -->
+                                <div id="baseImponibleDisplay2" class="px-3 py-2 bg-white border border-gray-300 rounded text-center font-medium"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -444,13 +450,13 @@
                         <p class="mb-4">Crea o personaliza una receta y agrega ingredientes desde el inventario. Cada receta nueva incluye los insumos precargados de preparación, decoración y limpieza con el valor por hora configurado.</p>
 
                     <h3 class="text-lg font-semibold mb-2">5. Produccion</h3>
-                    <p class="mb-4">Gestiona lotes de produccion por receta. Define cantidad de lotes, estado y notas de elaboracion para controlar la operacion diaria.</p>
+                    <p class="mb-4">Gestiona ordenes de produccion por cliente y fecha. En cada orden puedes combinar varias recetas con cantidades de lotes independientes para consolidar costos e insumos.</p>
 
                     <h3 class="text-lg font-semibold mb-2">6. Gastos Adicionales</h3>
                     <p class="mb-4">Incluye costos de energia, transporte, empaques u otros gastos indirectos para mejorar la precision de la cotizacion.</p>
 
                     <h3 class="text-lg font-semibold mb-2">7. Rentabilidad</h3>
-                    <p class="mb-4">Configura mano de obra, rentabilidad e impuestos para obtener un precio final de venta competitivo y sostenible.</p>
+                    <p class="mb-4">Sigue el flujo de costos base, costos indirectos, asistentes y liquidacion para obtener un precio final de venta alineado a tu estructura real.</p>
 
                     <h3 class="text-lg font-semibold mb-2">Guardar Datos</h3>
                     <p class="mb-4">Usa el botón "Guardar Datos" en la parte superior para almacenar toda la información localmente en tu navegador. Los datos se mantendrán entre sesiones.</p>
@@ -720,6 +726,9 @@
                 addBatch: 'Nueva Orden de Produccion',
                 batchName: 'Lote',
                 batchRecipe: 'Receta',
+                batchRecipes: 'Recetas de la orden',
+                batchAddRecipe: 'Agregar receta',
+                batchRemoveRecipe: 'Quitar',
                 batchQty: 'Cantidad requerida',
                 batchClient: 'Cliente',
                 batchStatus: 'Estado',
@@ -770,7 +779,7 @@
                 taxSettlement: 'Liquidación de Impuestos',
                 taxableBase: 'Base Imponible',
                 taxAmount: 'Monto del Impuesto',
-                totalWithTax: 'Total con Impuesto',
+                totalWithTax: 'Precio de Venta Sugerido',
                 noTax: 'Sin Impuesto',
                 taxName: 'Nombre del Impuesto',
                 laborPct: 'Costos Indirectos (%)',
@@ -848,6 +857,9 @@
                 addBatch: 'New Production Order',
                 batchName: 'Batch',
                 batchRecipe: 'Recipe',
+                batchRecipes: 'Order recipes',
+                batchAddRecipe: 'Add recipe',
+                batchRemoveRecipe: 'Remove',
                 batchQty: 'Batch Qty',
                 batchClient: 'Client',
                 batchStatus: 'Status',
@@ -898,7 +910,7 @@
                 taxSettlement: 'Tax Settlement',
                 taxableBase: 'Taxable Base',
                 taxAmount: 'Tax Amount',
-                totalWithTax: 'Total with Tax',
+                totalWithTax: 'Suggested Retail Price',
                 noTax: 'No Tax',
                 taxName: 'Tax Name',
                 laborPct: 'Indirect Costs (%)',
@@ -976,6 +988,9 @@
                 addBatch: 'Nouvel Ordre de Production',
                 batchName: 'Lot',
                 batchRecipe: 'Recette',
+                batchRecipes: 'Recettes de la commande',
+                batchAddRecipe: 'Ajouter recette',
+                batchRemoveRecipe: 'Retirer',
                 batchQty: 'Quantite Lots',
                 batchClient: 'Client',
                 batchStatus: 'Etat',
@@ -1026,7 +1041,7 @@
                 taxSettlement: 'Liquidation des Impôts',
                 taxableBase: 'Base Imposable',
                 taxAmount: 'Montant de l\'Impôt',
-                totalWithTax: 'Total avec Impôt',
+                totalWithTax: 'Prix ​​de détail suggéré',
                 noTax: 'Sans Impôt',
                 taxName: 'Nom de l\'Impôt',
                 laborPct: 'Coûts Indirects (%)',
@@ -1385,13 +1400,46 @@
             state.productionBatches = Array.isArray(state.productionBatches)
                 ? state.productionBatches
                 : (state.productionBatches && typeof state.productionBatches === 'object' ? Object.values(state.productionBatches) : []);
-            // Migrar lotes antiguos que tenían "estado" a "clientId"
-            state.productionBatches = state.productionBatches.map(batch => {
-                if (batch.estado && !batch.clientId) {
-                    // Lote viejo - convertir estado a clientId (usar primer cliente disponible)
-                    return { ...batch, clientId: state.clients.length ? state.clients[0].id : null };
+            // Migrar lotes antiguos y normalizar estructura de multiples recetas por orden.
+            state.productionBatches = state.productionBatches.map((batch, index) => {
+                const migratedBatch = { ...batch };
+                if (migratedBatch.estado && !migratedBatch.clientId) {
+                    migratedBatch.clientId = state.clients.length ? state.clients[0].id : null;
                 }
-                return batch;
+
+                const hasItems = Array.isArray(migratedBatch.items) && migratedBatch.items.length > 0;
+                const legacyRecipeId = migratedBatch.recipeId || '';
+                const legacyQty = parseFloat(migratedBatch.cantidadLotes) || 0;
+
+                const normalizedItems = (hasItems ? migratedBatch.items : [{ recipeId: legacyRecipeId, cantidadLotes: legacyQty || 1 }])
+                    .map((item) => ({
+                        id: item.id || getNextId(),
+                        recipeId: item.recipeId || '',
+                        cantidadLotes: parseFloat(item.cantidadLotes) || 0
+                    }))
+                    .filter((item) => item.recipeId || item.cantidadLotes > 0);
+
+                if (!normalizedItems.length) {
+                    normalizedItems.push({
+                        id: getNextId(),
+                        recipeId: state.recipes.length ? state.recipes[0].id : '',
+                        cantidadLotes: 1
+                    });
+                }
+
+                const firstItem = normalizedItems[0];
+                return {
+                    ...migratedBatch,
+                    id: migratedBatch.id || getNextId(),
+                    nombre: migratedBatch.nombre || `Lote ${index + 1}`,
+                    fecha: migratedBatch.fecha || new Date().toISOString().split('T')[0],
+                    notas: migratedBatch.notas || '',
+                    clientId: migratedBatch.clientId || (state.clients.length ? state.clients[0].id : null),
+                    items: normalizedItems,
+                    // Campos legacy para mantener compatibilidad con respaldos previos.
+                    recipeId: firstItem.recipeId,
+                    cantidadLotes: firstItem.cantidadLotes
+                };
             });
             state.expenses = Array.isArray(state.expenses) ? state.expenses : [];
             // Reconstruir los Set de expansion desde el array guardado
@@ -1770,14 +1818,34 @@
             return state.lastId;
         }
 
-        function getProductionMaterialRequirements() {
-            const requirementsByMaterial = {};
+        function getBatchItems(batch) {
+            if (Array.isArray(batch.items) && batch.items.length) {
+                return batch.items;
+            }
+            return [{
+                id: getNextId(),
+                recipeId: batch.recipeId || '',
+                cantidadLotes: parseFloat(batch.cantidadLotes) || 0
+            }];
+        }
 
-            state.productionBatches.forEach((batch) => {
-                const recipe = getRecipeById(batch.recipeId);
+        function syncLegacyBatchFields(batch) {
+            const items = getBatchItems(batch);
+            const firstItem = items[0] || { recipeId: '', cantidadLotes: 0 };
+            batch.recipeId = firstItem.recipeId || '';
+            batch.cantidadLotes = parseFloat(firstItem.cantidadLotes) || 0;
+            batch.items = items;
+        }
+
+        function getBatchMaterialRequirements(batch) {
+            const requirementsByMaterial = {};
+            let totalCost = 0;
+
+            getBatchItems(batch).forEach((item) => {
+                const recipe = getRecipeById(item.recipeId);
                 if (!recipe) return;
 
-                const lotes = parseFloat(batch.cantidadLotes) || 0;
+                const lotes = parseFloat(item.cantidadLotes) || 0;
                 if (lotes <= 0) return;
 
                 recipe.ingredientes.forEach((ing) => {
@@ -1798,8 +1866,35 @@
                         };
                     }
 
+                    const materialCost = qty * (parseFloat(material.precioUnitario) || 0);
                     requirementsByMaterial[material.id].cantidad += qty;
-                    requirementsByMaterial[material.id].costo += qty * (parseFloat(material.precioUnitario) || 0);
+                    requirementsByMaterial[material.id].costo += materialCost;
+                    totalCost += materialCost;
+                });
+            });
+
+            return { items: Object.values(requirementsByMaterial), totalCost };
+        }
+
+        function getProductionMaterialRequirements() {
+            const requirementsByMaterial = {};
+
+            state.productionBatches.forEach((batch) => {
+                const batchRequirements = getBatchMaterialRequirements(batch);
+                batchRequirements.items.forEach((item) => {
+                    if (!requirementsByMaterial[item.materialId]) {
+                        requirementsByMaterial[item.materialId] = {
+                            materialId: item.materialId,
+                            nombre: item.nombre,
+                            unidad: item.unidad,
+                            precioUnitario: item.precioUnitario,
+                            cantidad: 0,
+                            costo: 0
+                        };
+                    }
+
+                    requirementsByMaterial[item.materialId].cantidad += item.cantidad;
+                    requirementsByMaterial[item.materialId].costo += item.costo;
                 });
             });
 
@@ -1935,22 +2030,38 @@
             const t = uiTranslations[state.idioma] || uiTranslations.es;
 
             state.productionBatches.forEach((batch, index) => {
-                const recipe = getRecipeById(batch.recipeId);
-                const recipeCost = recipe ? calculateRecipeCost(recipe) : 0;
-                const estimatedCost = recipeCost * (parseFloat(batch.cantidadLotes) || 0);
+                const batchItems = getBatchItems(batch);
+                batch.items = batchItems;
+                syncLegacyBatchFields(batch);
 
-                let consumption = '-';
-                if (recipe) {
-                    consumption = recipe.ingredientes.map(ing => {
-                            const mat = getRecipeMaterialById(ing.materialId);
-                        if (!mat) return null;
-                        const qty = getIngredientBaseQuantity(ing, mat) * (parseFloat(batch.cantidadLotes) || 0);
-                        return `${mat.concepto}: ${formatNumber(qty)} ${mat.unidad}`;
-                    }).filter(Boolean).join(' | ');
-                }
+                const batchRequirements = getBatchMaterialRequirements(batch);
+                const estimatedCost = batchRequirements.totalCost;
+                const consumption = batchRequirements.items.length
+                    ? batchRequirements.items.map((item) => `${item.nombre}: ${formatNumber(item.cantidad)} ${item.unidad}`).join(' | ')
+                    : '-';
 
-                const recipeOptions = state.recipes.map(r => `<option value="${r.id}" ${String(batch.recipeId) === String(r.id) ? 'selected' : ''}>${r.nombre || 'Receta sin nombre'}</option>`).join('');
                 const clientOptions = state.clients.map(c => `<option value="${c.id}" ${String(batch.clientId) === String(c.id) ? 'selected' : ''}>${c.nombre || 'Cliente sin nombre'}</option>`).join('');
+                const recipeRows = batchItems.map((item, itemIndex) => {
+                    const recipeOptions = state.recipes.map(r => `<option value="${r.id}" ${String(item.recipeId) === String(r.id) ? 'selected' : ''}>${r.nombre || 'Receta sin nombre'}</option>`).join('');
+                    return `
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-2 mb-2 items-end">
+                            <div class="md:col-span-7">
+                                <label class="block text-sm font-medium mb-1">${t.batchRecipe}</label>
+                                <select class="input-field w-full" onchange="updateProductionBatchRecipe(${index}, ${itemIndex}, 'recipeId', this.value)">
+                                    <option value="">Selecciona receta</option>
+                                    ${recipeOptions}
+                                </select>
+                            </div>
+                            <div class="md:col-span-3">
+                                <label class="block text-sm font-medium mb-1">${t.batchQty}</label>
+                                <input class="input-field w-full" type="number" min="0" step="1" value="${item.cantidadLotes}" onchange="updateProductionBatchRecipe(${index}, ${itemIndex}, 'cantidadLotes', this.value)">
+                            </div>
+                            <div class="md:col-span-2">
+                                <button class="bg-red-600 text-white px-3 py-2 rounded w-full" onclick="removeBatchRecipeLine(${index}, ${itemIndex})">${t.batchRemoveRecipe || 'Quitar'}</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
 
                 list.innerHTML += `
                     <div class="mb-4 p-4 bg-amber-50 rounded border border-amber-200">
@@ -1962,25 +2073,23 @@
                                     ${clientOptions}
                                 </select>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">${t.batchRecipe}</label>
-                                <select class="input-field w-full" onchange="updateProductionBatch(${index}, 'recipeId', this.value)">
-                                    <option value="">Selecciona receta</option>
-                                    ${recipeOptions}
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium mb-1">${t.batchQty}</label>
-                                <input class="input-field w-full" type="number" min="1" step="1" value="${batch.cantidadLotes}" onchange="updateProductionBatch(${index}, 'cantidadLotes', this.value)">
-                            </div>
-                            <div>
+                            <div class="md:col-span-2">
                                 <label class="block text-sm font-medium mb-1">${t.batchDate}</label>
                                 <input class="input-field w-full" type="date" value="${batch.fecha || ''}" onchange="updateProductionBatch(${index}, 'fecha', this.value)">
                             </div>
-                            <div class="flex items-end">
+                            <div class="md:col-span-2 flex items-end">
                                 <button class="bg-red-600 text-white px-3 py-2 rounded w-full" onclick="removeProductionBatch(${index})">Eliminar</button>
                             </div>
                         </div>
+
+                        <div class="mt-3 p-3 bg-white rounded border border-amber-200">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-semibold text-amber-800">${t.batchRecipes || 'Recetas de la orden'}</h4>
+                                <button class="btn-primary px-3 py-1 rounded text-sm" onclick="addBatchRecipeLine(${index})">${t.batchAddRecipe || 'Agregar receta'}</button>
+                            </div>
+                            ${recipeRows}
+                        </div>
+
                         <div class="mt-2 flex justify-end gap-2">
                             <button class="btn-primary px-3 py-2 rounded" onclick="generateBatchDocument(${index})">${t.generateOrderDetail}</button>
                         </div>
@@ -2108,9 +2217,14 @@
             const batch = state.productionBatches[batchIndex];
             if (!batch) return;
 
-            const recipe = getRecipeById(batch.recipeId);
-            if (!recipe) {
-                showMessage('Selecciona una receta para generar el detalle de la orden.', 'error');
+            const batchItems = getBatchItems(batch).filter((item) => {
+                const recipe = getRecipeById(item.recipeId);
+                const lotes = parseFloat(item.cantidadLotes) || 0;
+                return recipe && lotes > 0;
+            });
+
+            if (!batchItems.length) {
+                showMessage('Selecciona al menos una receta con cantidad valida para generar el detalle de la orden.', 'error');
                 return;
             }
 
@@ -2119,23 +2233,38 @@
                 return;
             }
 
-            const lotes = parseFloat(batch.cantidadLotes) || 0;
-            const ingredients = recipe.ingredientes
-                .map((ing) => {
-                        const material = getRecipeMaterialById(ing.materialId);
-                    if (!material) return null;
-                    const qtyBase = getIngredientBaseQuantity(ing, material);
-                    const qtyTotal = qtyBase * lotes;
-                    return {
-                        nombre: material.concepto,
-                        unidad: material.unidad || 'unidad',
-                        qtyBase,
-                        qtyTotal
-                    };
-                })
-                .filter(Boolean);
+            const requirementByMaterial = {};
+            batchItems.forEach((item) => {
+                const recipe = getRecipeById(item.recipeId);
+                const lotes = parseFloat(item.cantidadLotes) || 0;
+                if (!recipe || lotes <= 0) return;
+
+                recipe.ingredientes.forEach((ing) => {
+                    const material = getRecipeMaterialById(ing.materialId);
+                    if (!material) return;
+
+                    const qty = getIngredientBaseQuantity(ing, material) * lotes;
+                    if (qty <= 0) return;
+
+                    if (!requirementByMaterial[material.id]) {
+                        requirementByMaterial[material.id] = {
+                            nombre: material.concepto,
+                            unidad: material.unidad || 'unidad',
+                            qtyTotal: 0
+                        };
+                    }
+                    requirementByMaterial[material.id].qtyTotal += qty;
+                });
+            });
+
+            const ingredients = Object.values(requirementByMaterial);
 
             const totalQty = ingredients.reduce((sum, item) => sum + item.qtyTotal, 0);
+            const recipeLines = batchItems.map((item) => {
+                const recipe = getRecipeById(item.recipeId);
+                const recipeName = recipe ? (recipe.nombre || 'Sin nombre') : 'Receta no encontrada';
+                return `${recipeName} x ${formatNumber(item.cantidadLotes, 0)} lote(s)`;
+            });
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -2144,11 +2273,20 @@
             doc.text('DETALLE DE ORDEN', 14, 16);
             doc.setFontSize(11);
             doc.text(`Orden: ${batch.nombre || `Orden ${batchIndex + 1}`}`, 14, 26);
-            doc.text(`Receta: ${recipe.nombre || 'Sin nombre'}`, 14, 32);
-            doc.text(`Cantidad de lotes: ${formatNumber(lotes, 0)}`, 14, 38);
-            doc.text(`Fecha: ${batch.fecha || new Date().toISOString().split('T')[0]}`, 14, 44);
+            doc.text(`Cliente: ${(state.clients.find((c) => String(c.id) === String(batch.clientId)) || {}).nombre || 'No definido'}`, 14, 32);
+            doc.text(`Fecha: ${batch.fecha || new Date().toISOString().split('T')[0]}`, 14, 38);
 
-            let y = 56;
+            let y = 46;
+            doc.setFont(undefined, 'bold');
+            doc.text('Recetas incluidas:', 14, y);
+            doc.setFont(undefined, 'normal');
+            y += 6;
+            recipeLines.forEach((line) => {
+                doc.text(`- ${line}`, 16, y);
+                y += 5;
+            });
+
+            y += 4;
             doc.setFont(undefined, 'bold');
             doc.text('Material', 14, y);
             doc.text('Proporcion', 94, y);
@@ -2340,10 +2478,56 @@
         }
 
         function updateProductionBatch(index, field, value) {
+            state.productionBatches[index][field] = value;
+            syncLegacyBatchFields(state.productionBatches[index]);
+            renderProductionBatches();
+            calculateResults();
+        }
+
+        function updateProductionBatchRecipe(batchIndex, itemIndex, field, value) {
+            const batch = state.productionBatches[batchIndex];
+            if (!batch) return;
+
+            batch.items = getBatchItems(batch);
+            if (!batch.items[itemIndex]) return;
+
             if (field === 'cantidadLotes') {
                 value = parseFloat(value) || 0;
             }
-            state.productionBatches[index][field] = value;
+
+            batch.items[itemIndex][field] = value;
+            syncLegacyBatchFields(batch);
+            renderProductionBatches();
+            calculateResults();
+        }
+
+        function addBatchRecipeLine(batchIndex) {
+            const batch = state.productionBatches[batchIndex];
+            if (!batch) return;
+
+            batch.items = getBatchItems(batch);
+            batch.items.push({
+                id: getNextId(),
+                recipeId: state.recipes.length ? state.recipes[0].id : '',
+                cantidadLotes: 1
+            });
+            syncLegacyBatchFields(batch);
+            renderProductionBatches();
+            calculateResults();
+        }
+
+        function removeBatchRecipeLine(batchIndex, itemIndex) {
+            const batch = state.productionBatches[batchIndex];
+            if (!batch) return;
+
+            batch.items = getBatchItems(batch);
+            batch.items.splice(itemIndex, 1);
+
+            if (!batch.items.length) {
+                batch.items.push({ id: getNextId(), recipeId: '', cantidadLotes: 1 });
+            }
+
+            syncLegacyBatchFields(batch);
             renderProductionBatches();
             calculateResults();
         }
@@ -2371,6 +2555,122 @@
             calculateResults();
         }
 
+        function formatDateForPdf(dateValue, fallbackText = '-') {
+            if (!dateValue) return fallbackText;
+
+            if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
+                const [year, month, day] = dateValue.split('-');
+                return `${day}/${month}/${year}`;
+            }
+
+            const parsed = new Date(dateValue);
+            if (Number.isNaN(parsed.getTime())) return fallbackText;
+
+            const day = String(parsed.getDate()).padStart(2, '0');
+            const month = String(parsed.getMonth() + 1).padStart(2, '0');
+            const year = parsed.getFullYear();
+            return `${day}/${month}/${year}`;
+        }
+
+        function getInvoiceItems(batchIndex, clientId) {
+            const sourceBatches = (batchIndex !== undefined && state.productionBatches[batchIndex])
+                ? [state.productionBatches[batchIndex]]
+                : state.productionBatches.filter((batch) => {
+                    if (!clientId) return true;
+                    return String(batch.clientId) === String(clientId);
+                });
+
+            const baseItems = [];
+            let rowNumber = 1;
+
+            sourceBatches.forEach((batch) => {
+                getBatchItems(batch).forEach((item) => {
+                    const recipe = getRecipeById(item.recipeId);
+                    const qty = parseFloat(item.cantidadLotes) || 0;
+                    if (!recipe || qty <= 0) return;
+
+                    const baseCost = calculateRecipeCost(recipe) * qty;
+                    baseItems.push({
+                        no: rowNumber,
+                        descripcion: recipe.nombre || 'Receta sin nombre',
+                        cantidad: qty,
+                        baseCost
+                    });
+                    rowNumber += 1;
+                });
+            });
+
+            const totalMateriales = baseItems.reduce((sum, item) => sum + item.baseCost, 0);
+            const totalManoObra = totalMateriales * (state.calculations.manoObraPct / 100);
+            const totalAsistentes = (parseFloat(state.calculations.asistente1) || 0)
+                + (parseFloat(state.calculations.asistente2) || 0)
+                + (parseFloat(state.calculations.asistente3) || 0)
+                + (parseFloat(state.calculations.asistente4) || 0);
+            const totalGastos = state.expenses.reduce((sum, exp) => sum + (parseFloat(exp.precio) || 0), 0);
+            const totalCostos = totalMateriales + totalManoObra + totalAsistentes;
+            const miGanancia = totalCostos * (state.calculations.rentabilidadPct / 100);
+            const subtotalFinal = totalCostos + miGanancia;
+            const precioBase = subtotalFinal + totalGastos;
+
+            let baseImponible = precioBase;
+            let impuesto = 0;
+            let precioFinal = precioBase;
+
+            if (state.calculations.tipoImpuesto !== 'noimpuesto') {
+                const tasa = (parseFloat(state.calculations.tasaImpuesto) || 0) / 100;
+                if (state.calculations.tipoImpuesto === 'incluido') {
+                    baseImponible = precioBase / (1 + tasa);
+                    impuesto = precioBase - baseImponible;
+                    precioFinal = precioBase;
+                } else {
+                    baseImponible = precioBase;
+                    impuesto = precioBase * tasa;
+                    precioFinal = precioBase + impuesto;
+                }
+            }
+
+            let impuesto2 = 0;
+            if (state.calculations.tipoImpuesto2 !== 'noimpuesto') {
+                const tasa2 = (parseFloat(state.calculations.tasaImpuesto2) || 0) / 100;
+                if (state.calculations.tipoImpuesto2 === 'incluido') {
+                    const baseImponible2 = precioBase / (1 + tasa2);
+                    impuesto2 = precioBase - baseImponible2;
+                } else {
+                    impuesto2 = precioBase * tasa2;
+                }
+            }
+            precioFinal += impuesto2;
+
+            const distributionTarget = baseImponible;
+            const distributedItems = baseItems.map((item) => {
+                const weight = totalMateriales > 0
+                    ? (item.baseCost / totalMateriales)
+                    : (baseItems.length ? (1 / baseItems.length) : 0);
+                return {
+                    no: item.no,
+                    descripcion: item.descripcion,
+                    cantidad: item.cantidad,
+                    precio: distributionTarget * weight
+                };
+            });
+
+            if (distributedItems.length) {
+                const sumDistributed = distributedItems.reduce((sum, item) => sum + item.precio, 0);
+                const diff = distributionTarget - sumDistributed;
+                distributedItems[distributedItems.length - 1].precio += diff;
+            }
+
+            return {
+                items: distributedItems,
+                totals: {
+                    subtotal: baseImponible,
+                    impuesto,
+                    impuesto2,
+                    total: precioFinal
+                }
+            };
+        }
+
         // Generar y descargar el PDF de la cotización basado en el cliente del lote seleccionado
         function generatePDF(batchIndex) {
             console.log('Iniciando generación de PDF...');
@@ -2387,20 +2687,24 @@
 
             // Obtener cliente del batch si se especifica, sino usar el primero disponible
             let clientData = {};
+            let selectedClientId = null;
             if (batchIndex !== undefined && state.productionBatches[batchIndex]) {
                 const batch = state.productionBatches[batchIndex];
                 if (batch.clientId) {
                     const found = state.clients.find(c => c.id === batch.clientId);
                     clientData = found || state.clients[0] || {};
+                    selectedClientId = found ? found.id : (state.clients[0] ? state.clients[0].id : null);
                 } else {
                     clientData = state.clients[0] || {};
+                    selectedClientId = state.clients[0] ? state.clients[0].id : null;
                 }
             } else {
                 // Fallback: usar primer cliente disponible
                 clientData = state.clients[0] || {};
+                selectedClientId = state.clients[0] ? state.clients[0].id : null;
             }
 
-            const results = calculateResults();
+            calculateResults();
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -2413,10 +2717,8 @@
             // Traducciones para el PDF
             const translations = {
                 es: {
-                    title: 'COTIZACION DE PANADERIA',
-                    clientInfo: 'INFORMACIÓN DEL CLIENTE',
-                    serviceDetails: 'DETALLES DEL SERVICIO',
-                    costBreakdown: 'DESGLOSE DE COSTOS',
+                    title: 'COTIZACION',
+                    clientInfo: 'CLIENTE',
                     quoteDate: 'Fecha de Cotización',
                     decorationDate: 'Fecha de Entrega',
                     client: 'Cliente',
@@ -2424,36 +2726,21 @@
                     email: 'Email',
                     contact: 'Contacto',
                     notes: 'Notas',
-                    serviceType: 'Tipo de Producto',
-                    description: 'Descripción',
-                    concept: 'Concepto',
+                    itemNo: 'No. Item',
+                    itemDescription: 'Descripcion',
                     quantity: 'Cantidad',
-                    unitPrice: 'Precio Unit.',
-                    subtotal: 'Subtotal',
-                    labor: 'Mano de Obra',
-                    additionalCosts: 'Gastos Adicionales',
-                    totalCosts: 'Total Costos',
-                    myProfit: 'Mi Ganancia',
-                    decorationValue: 'Valor de Produccion',
-                    finalPrice: 'PRECIO FINAL',
-                    taxableBase: 'Base Imponible',
-                    taxAmount: 'Impuestos',
-                    totalWithTax: 'Total con Impuesto',
+                    price: 'Precio',
+                    subtotalLabel: 'Sub total',
+                    totalLabel: 'Total',
                     thanks: 'Gracias por su preferencia.',
                     contactUs: '¿Tiene alguna pregunta sobre esta cotización?, comunicate con nosotros para ayudarte.',
                     footerContact: 'Contáctenos para darle una pronta respuesta.',
                     footerPhone: 'Teléfono',
-                    notSpecified: 'No especificado',
-                    materials: 'Materiales',
-                    totalMaterials: 'Total Materiales',
-                    totalAssistants: 'Total Asistentes',
-                    totalExpenses: 'Total Gastos Adicionales'
+                    notSpecified: 'No especificado'
                 },
                 en: {
-                    title: 'BAKERY QUOTATION',
+                    title: 'QUOTATION',
                     clientInfo: 'CLIENT INFORMATION',
-                    serviceDetails: 'SERVICE DETAILS',
-                    costBreakdown: 'COST BREAKDOWN',
                     quoteDate: 'Quote Date',
                     decorationDate: 'Delivery Date',
                     client: 'Client',
@@ -2461,36 +2748,21 @@
                     email: 'Email',
                     contact: 'Contact',
                     notes: 'Notes',
-                    serviceType: 'Service Type',
-                    description: 'Description',
-                    concept: 'Concept',
+                    itemNo: 'No. Item',
+                    itemDescription: 'Description',
                     quantity: 'Quantity',
-                    unitPrice: 'Unit Price',
-                    subtotal: 'Subtotal',
-                    labor: 'Labor',
-                    additionalCosts: 'Additional Expenses',
-                    totalCosts: 'Total Costs',
-                    myProfit: 'My Profit',
-                    decorationValue: 'Preparation Value',
-                    finalPrice: 'FINAL PRICE',
-                    taxableBase: 'Taxable Base',
-                    taxAmount: 'Tax Amount',
-                    totalWithTax: 'Total with Tax',
+                    price: 'Price',
+                    subtotalLabel: 'Subtotal',
+                    totalLabel: 'Total',
                     thanks: 'Thank you for your preference. please contact us for any questions.',
                     contactUs: 'Contact us for a prompt response.',
                     footerContact: 'Contact us for a prompt response.',
                     footerPhone: 'Phone',
-                    notSpecified: 'Not specified',
-                    materials: 'Materials',
-                    totalMaterials: 'Total Materials',
-                    totalAssistants: 'Total Assistants',
-                    totalExpenses: 'Total Additional Expenses'
+                    notSpecified: 'Not specified'
                 },
                 fr: {
-                    title: 'DEVIS BOULANGERIE',
+                    title: 'DEVIS',
                     clientInfo: 'INFORMATION CLIENT',
-                    serviceDetails: 'DÉTAILS DU SERVICE',
-                    costBreakdown: 'DÉTAIL DES COÛTS',
                     quoteDate: 'Date de Devis',
                     decorationDate: 'Date de Livraison',
                     client: 'Client',
@@ -2498,30 +2770,17 @@
                     email: 'Email',
                     contact: 'Contact',
                     notes: 'Notes',
-                    serviceType: 'Type de Service',
-                    description: 'Description',
-                    concept: 'Concept',
+                    itemNo: 'No. Article',
+                    itemDescription: 'Description',
                     quantity: 'Quantité',
-                    unitPrice: 'Prix Unit.',
-                    subtotal: 'Subtotal',
-                    labor: 'Main d\'œuvre',
-                    additionalCosts: 'Dépenses Additionnelles',
-                    totalCosts: 'Coûts Totaux',
-                    myProfit: 'Mon Profit',
-                    decorationValue: 'Valeur de la Préparation',
-                    finalPrice: 'PRIX FINAL',
-                    taxableBase: 'Base Imposable',
-                    taxAmount: 'Montant de l\'Impôt',
-                    totalWithTax: 'Total avec Impôt',
+                    price: 'Prix',
+                    subtotalLabel: 'Sous-total',
+                    totalLabel: 'Total',
                     thanks: 'Merci de votre préférence. veuillez nous contacter pour toute question.',
                     contactUs: 'Contactez-nous pour une réponse rapide.',
                     footerContact: 'Contactez-nous pour une réponse rapide.',
                     footerPhone: 'Téléphone',
-                    notSpecified: 'Non spécifié',
-                    materials: 'Matériaux',
-                    totalMaterials: 'Total Matériaux',
-                    totalAssistants: 'Total Assistants',
-                    totalExpenses: 'Total Dépenses Additionnelles'
+                    notSpecified: 'Non spécifié'
                 }
 
             };
@@ -2560,92 +2819,115 @@
             doc.text(pdfT.title, 15, 65);
 
             // Client Info
-         //   let y = 75;
             doc.setFontSize(10);
             doc.setTextColor(...textColor);
             doc.setFont(undefined, 'bold');
             doc.text(pdfT.clientInfo, 15, 74);
-         //   y += 8;
             doc.setFont(undefined, 'normal');
             doc.text(`${pdfT.client}: ${clientData.nombre || pdfT.notSpecified}`, 15, 80);
             doc.text(`${pdfT.location}: ${clientData.lugarDecoracion || pdfT.notSpecified}`, 15, 85);
             doc.text(`${pdfT.email}: ${clientData.email || pdfT.notSpecified}`, 15, 90);
             doc.text(`${pdfT.contact}: ${clientData.contacto || pdfT.notSpecified}`, 15, 95);
 
-          //  Fechas - A la derecha
+            // Fechas - formato dd/mm/aaaa
             doc.text(`${pdfT.decorationDate}:`, 150, 80);
-            doc.text(`${clientData.fechaDecoracion || pdfT.notSpecified}`, 155, 85);
+            doc.text(`${formatDateForPdf(clientData.fechaDecoracion, pdfT.notSpecified)}`, 155, 85);
             doc.text(`${pdfT.quoteDate}:`, 150, 90);
-            doc.text(`${clientData.fechaCotizacion || pdfT.notSpecified}`, 155, 95);
+            doc.text(`${formatDateForPdf(clientData.fechaCotizacion, pdfT.notSpecified)}`, 155, 95);
 
-            // Service Details
-            y = 105;
+            const invoiceData = getInvoiceItems(batchIndex, selectedClientId);
+            const invoiceItems = invoiceData.items || [];
+            const invoiceTotals = invoiceData.totals || { subtotal: 0, impuesto: 0, impuesto2: 0, total: 0 };
+            if (!invoiceItems.length) {
+                invoiceItems.push({
+                    no: 1,
+                    descripcion: (clientData.descripcion || clientData.tipoServicio || 'Pedido del cliente'),
+                    cantidad: 1,
+                    precio: invoiceTotals.subtotal
+                });
+            }
+
+            let y = 108;
+            doc.setFontSize(10);
+            doc.setDrawColor(190, 190, 190);
+            doc.setFillColor(245, 245, 245);
+            doc.rect(14, y, 182, 8, 'FD');
             doc.setFont(undefined, 'bold');
-            doc.text(pdfT.serviceDetails, 15, y);
-            y += 8;
+            doc.text(pdfT.itemNo, 16, y + 5.5);
+            doc.text(pdfT.itemDescription, 34, y + 5.5);
+            doc.text(pdfT.quantity, 136, y + 5.5);
+            doc.text(pdfT.price, 166, y + 5.5);
+
+            y += 10;
             doc.setFont(undefined, 'normal');
-            doc.text(`${pdfT.serviceType}: ${clientData.tipoServicio || pdfT.notSpecified}`, 15, y);
-            y += 8;
-            const descText = `${pdfT.description}: ${clientData.descripcion || pdfT.notSpecified}`;
- 
-            const descLines = doc.splitTextToSize(descText, 175);
-            doc.text(descLines, 15, y);
-            y += descLines.length * 4.5;
-        
+
+            invoiceItems.forEach((item) => {
+                const extraLineGap = 2;
+                const descLines = doc.splitTextToSize(item.descripcion || '-', 95);
+                const rowHeight = Math.max(6, descLines.length * 4.5);
+
+                if (y + extraLineGap + rowHeight > 270) {
+                    doc.addPage();
+                    y = 20;
+                    doc.setFillColor(245, 245, 245);
+                    doc.rect(14, y, 182, 8, 'FD');
+                    doc.setFont(undefined, 'bold');
+                    doc.text(pdfT.itemNo, 16, y + 5.5);
+                    doc.text(pdfT.itemDescription, 34, y + 5.5);
+                    doc.text(pdfT.quantity, 136, y + 5.5);
+                    doc.text(pdfT.price, 166, y + 5.5);
+                    y += 10;
+                    doc.setFont(undefined, 'normal');
+                }
+
+                // Salto de linea antes de cada item para mejorar legibilidad.
+                y += extraLineGap;
+                doc.text(String(item.no), 16, y);
+                doc.text(descLines, 34, y);
+                doc.text(formatNumber(item.cantidad, 0), 138, y);
+                doc.text(formatCurrency(item.precio), 164, y);
+                y += rowHeight;
+            });
+
             if (clientData.notas) {
-                const notesText = `${pdfT.notes}: ${clientData.notas}`;
-                const notesLines = doc.splitTextToSize(notesText, 175);
-                doc.text(notesLines, 15, y);
+                y += 6;
+                doc.setFont(undefined, 'bold');
+                doc.text(`${pdfT.notes}:`, 14, y);
+                doc.setFont(undefined, 'normal');
+                y += 5;
+                const notesLines = doc.splitTextToSize(clientData.notas, 182);
+                doc.text(notesLines, 14, y);
                 y += notesLines.length * 4.5;
             }
 
-            // Results
             y += 8;
-            doc.setFont(undefined, 'bold');
-            doc.text(pdfT.costBreakdown, 15, y);
-            y += 8;
-            doc.setFont(undefined, 'normal');
-            doc.setFont(undefined, 'normal');
-            doc.text(`${pdfT.decorationValue}:`, 30, y); 
-            doc.text(`${formatCurrency(results.subtotalFinal)}`, 130, y);
-        //    doc.text(`${pdfT.totalMaterials}: ${formatCurrency(results.totalMateriales)}`, 15, y); y += 5;
-        //    doc.text(`${pdfT.labor}: ${formatCurrency(results.totalManoObra)}`, 15, y); y += 5;
-        //    doc.text(`${pdfT.totalAssistants}: ${formatCurrency(results.totalAsistentes)}`, 15, y); y += 5;
-        //    doc.text(`${pdfT.totalExpenses}: ${formatCurrency(results.totalGastos)}`, 15, y); y += 5;
-        //    doc.text(`${pdfT.totalCosts}: ${formatCurrency(results.totalCostos)}`, 15, y); y += 5;
-        //    doc.text(`${pdfT.myProfit}: ${formatCurrency(results.miGanancia)}`, 15, y); y += 5;
+            const summaryXLabel = 154;
+            const summaryXValue = 196;
 
-            // Expenses
-            y += 8;
-            doc.setFont(undefined, 'bold');
-            doc.text(pdfT.additionalCosts + ':', 15, y);
-            y += 8;
             doc.setFont(undefined, 'normal');
-            state.expenses.forEach(exp => {
-                doc.text(`${exp.concepto}:`, 30, y);
-                doc.text(`${formatCurrency(exp.precio)}`, 130, y);
-                y += 5;
-            });
-            // IMPUESTOS Y TOTAL
-            y += 3;
-            doc.setFont(undefined, 'bold');
-            doc.text(pdfT.taxAmount + ':', 15, y);
-            y += 5;
-            doc.setFont(undefined, 'normal');
-            doc.text(`${pdfT.taxableBase}:`, 30, y); 
-            doc.text(`${formatCurrency(results.baseImponible)}`, 130, y); y += 5;
-            if (state.calculations.tipoImpuesto !== 'noimpuesto') {
-                doc.text(`${state.calculations.nombreImpuesto} (${state.calculations.tasaImpuesto}%):`, 30, y);
-                doc.text(`${formatCurrency(results.impuesto)}`, 130, y); y += 5;
+            doc.text(`${pdfT.subtotalLabel}:`, summaryXLabel, y, { align: 'right' });
+            doc.text(`${formatCurrency(invoiceTotals.subtotal)}`, summaryXValue, y, { align: 'right' });
+            y += 6;
+
+            const hasTax1 = (parseFloat(invoiceTotals.impuesto) || 0) > 0;
+            const hasTax2 = (parseFloat(invoiceTotals.impuesto2) || 0) > 0;
+
+            if (hasTax1) {
+                doc.text(`${state.calculations.nombreImpuesto || 'Impuesto 1'} (${state.calculations.tasaImpuesto || 0}%):`, summaryXLabel, y, { align: 'right' });
+                doc.text(`${formatCurrency(invoiceTotals.impuesto)}`, summaryXValue, y, { align: 'right' });
+                y += 6;
             }
-            if (state.calculations.tipoImpuesto2 !== 'noimpuesto') {
-                doc.text(`${state.calculations.nombreImpuesto2} (${state.calculations.tasaImpuesto2}%):`, 30, y);
-                doc.text(`${formatCurrency(results.impuesto2)}`, 130, y); y += 5;
+
+            if (hasTax2) {
+                doc.text(`${state.calculations.nombreImpuesto2 || 'Impuesto 2'} (${state.calculations.tasaImpuesto2 || 0}%):`, summaryXLabel, y, { align: 'right' });
+                doc.text(`${formatCurrency(invoiceTotals.impuesto2)}`, summaryXValue, y, { align: 'right' });
+                y += 6;
             }
-            y += 8;
-            doc.setFontSize(18);
+
             doc.setFont(undefined, 'bold');
-            doc.text(`${pdfT.finalPrice} ${formatCurrency(results.precioFinal)}`, 40, y);
+            doc.text(`${pdfT.totalLabel}:`, summaryXLabel, y, { align: 'right' });
+            doc.text(`${formatCurrency(invoiceTotals.total)}`, summaryXValue, y, { align: 'right' });
+            doc.setFontSize(10);
 
             // Footer
             
@@ -2869,11 +3151,17 @@
         document.getElementById('addProductionBatch').addEventListener('click', () => {
             const defaultRecipeId = state.recipes.length ? state.recipes[0].id : '';
             const defaultClientId = state.clients.length ? state.clients[0].id : null;
+            const defaultItem = {
+                id: getNextId(),
+                recipeId: defaultRecipeId,
+                cantidadLotes: 1
+            };
             state.productionBatches.push({
                 id: getNextId(),
                 nombre: `Lote ${state.productionBatches.length + 1}`,
-                recipeId: defaultRecipeId,
-                cantidadLotes: 1,
+                recipeId: defaultItem.recipeId,
+                cantidadLotes: defaultItem.cantidadLotes,
+                items: [defaultItem],
                 clientId: defaultClientId,
                 fecha: new Date().toISOString().split('T')[0],
                 notas: ''
@@ -2988,6 +3276,9 @@
         window.removeRecipeIngredient = removeRecipeIngredient;
         window.removeRecipe = removeRecipe;
         window.updateProductionBatch = updateProductionBatch;
+        window.updateProductionBatchRecipe = updateProductionBatchRecipe;
+        window.addBatchRecipeLine = addBatchRecipeLine;
+        window.removeBatchRecipeLine = removeBatchRecipeLine;
         window.removeProductionBatch = removeProductionBatch;
         window.generateBatchDocument = generateBatchDocument;
 
