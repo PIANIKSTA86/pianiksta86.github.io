@@ -273,8 +273,7 @@
         <div id="produccion" class="tab-content">
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Produccion</h2>
-                <button id="addProductionBatch" class="btn-primary px-4 py-2 rounded mb-4">Nueva Orden de Produccion</button>
-                <p class="text-sm text-amber-800 mb-3">Crea ordenes por cliente y fecha, asociando varias recetas en una sola orden para consolidar el consumo estimado y el costo total.</p>
+                <p class="text-sm text-amber-800 mb-3">Las ordenes se crean automaticamente para el <strong>cliente activo</strong>. Selecciona primero el cliente en la seccion <strong>Clientes</strong> y luego crea las ordenes aqui. El PDF de cotizacion siempre usara el cliente activo.</p>
                 <div id="productionList"></div>
             </div>
         </div>
@@ -2048,7 +2047,6 @@
                     ? batchRequirements.items.map((item) => `${item.nombre}: ${formatNumber(item.cantidad)} ${item.unidad}`).join(' | ')
                     : '-';
 
-                const clientOptions = state.clients.map(c => `<option value="${c.id}" ${String(batch.clientId) === String(c.id) ? 'selected' : ''}>${c.nombre || 'Cliente sin nombre'}</option>`).join('');
                 const recipeRows = batchItems.map((item, itemIndex) => {
                     const recipeOptions = state.recipes.map(r => `<option value="${r.id}" ${String(item.recipeId) === String(r.id) ? 'selected' : ''}>${r.nombre || 'Receta sin nombre'}</option>`).join('');
                     return `
@@ -2073,14 +2071,7 @@
 
                 list.innerHTML += `
                     <div class="mb-4 p-4 bg-amber-50 rounded border border-amber-200">
-                        <div class="grid grid-cols-1 md:grid-cols-5 gap-2">
-                            <div>
-                                <label class="block text-sm font-medium mb-1">${t.batchClient}</label>
-                                <select class="input-field w-full" onchange="updateProductionBatch(${index}, 'clientId', this.value)">
-                                    <option value="">Selecciona cliente</option>
-                                    ${clientOptions}
-                                </select>
-                            </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium mb-1">${t.batchDate}</label>
                                 <input class="input-field w-full" type="date" value="${batch.fecha || ''}" onchange="updateProductionBatch(${index}, 'fecha', this.value)">
@@ -2738,8 +2729,9 @@
                 }
             } else {
                 // Fallback: usar primer cliente disponible
-                clientData = state.clients[0] || {};
-                selectedClientId = state.clients[0] ? state.clients[0].id : null;
+                // PDF desde Rentabilidad: usar el cliente activo
+                clientData = getActiveClient();
+                selectedClientId = state.activeClientId || null;
             }
 
             calculateResults();
@@ -3191,35 +3183,6 @@
             renderRecipes();
             renderProductionBatches();
             calculateResults();
-        });
-
-        document.getElementById('addProductionBatch').addEventListener('click', () => {
-            const defaultRecipe = state.recipes.length ? state.recipes[0] : null;
-            const defaultRecipeId = defaultRecipe ? defaultRecipe.id : '';
-            const defaultClientId = state.clients.length ? state.clients[0].id : null;
-            const defaultItem = {
-                id: getNextId(),
-                recipeId: defaultRecipeId,
-                cantidadLotes: defaultRecipe ? (parseFloat(defaultRecipe.rendimiento) || 1) : 1
-            };
-            state.productionBatches.push({
-                id: getNextId(),
-                nombre: `Lote ${state.productionBatches.length + 1}`,
-                recipeId: defaultItem.recipeId,
-                cantidadLotes: defaultItem.cantidadLotes,
-                items: [defaultItem],
-                clientId: defaultClientId,
-                fecha: new Date().toISOString().split('T')[0],
-                notas: ''
-            });
-            renderProductionBatches();
-            calculateResults();
-
-            if (defaultRecipeId) {
-                showMessage('Orden creada. Completa los datos y genera el detalle cuando este listo.', 'success');
-            } else {
-                showMessage('Orden creada. Agrega una receta para continuar con el detalle de la orden.', 'success');
-            }
         });
 
         document.getElementById('addExpense').addEventListener('click', () => {
