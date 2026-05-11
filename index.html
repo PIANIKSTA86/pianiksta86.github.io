@@ -274,6 +274,7 @@
             <div class="card p-6">
                 <h2 class="text-xl font-bold mb-4">Produccion</h2>
                 <p class="text-sm text-amber-800 mb-3">Las ordenes se crean automaticamente para el <strong>cliente activo</strong>. Selecciona primero el cliente en la seccion <strong>Clientes</strong> y luego crea las ordenes aqui. El PDF de cotizacion siempre usara el cliente activo.</p>
+                <button id="addProductionBatch" class="btn-primary px-4 py-2 rounded mb-4">Nueva Orden de Producción</button>
                 <div id="productionList"></div>
             </div>
         </div>
@@ -778,7 +779,7 @@
                 taxSettlement: 'Liquidación de Impuestos',
                 taxableBase: 'Base Imponible',
                 taxAmount: 'Monto del Impuesto',
-                totalWithTax: 'Precio de Venta Sugerido',
+                totalWithTax: 'Valor Total',
                 noTax: 'Sin Impuesto',
                 taxName: 'Nombre del Impuesto',
                 laborPct: 'Costos Indirectos (%)',
@@ -1666,6 +1667,31 @@
             status.textContent = text;
             status.className = `mt-4 p-2 rounded ${type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
             setTimeout(() => status.textContent = '', 3000);
+        }
+
+        // Crear una nueva orden de producción (lote)
+        function addProductionBatch() {
+            const clientId = state.activeClientId || (state.clients.length ? state.clients[0].id : null);
+            const defaultRecipe = state.recipes.length ? state.recipes[0] : null;
+            const defaultRequiredUnits = defaultRecipe ? (parseFloat(defaultRecipe.rendimiento) || 1) : 1;
+            const newBatch = {
+                id: getNextId(),
+                nombre: `Lote ${state.productionBatches.length + 1}`,
+                fecha: new Date().toISOString().split('T')[0],
+                notas: '',
+                clientId: clientId,
+                items: [
+                    {
+                        id: getNextId(),
+                        recipeId: defaultRecipe ? defaultRecipe.id : '',
+                        cantidadLotes: defaultRequiredUnits
+                    }
+                ]
+            };
+            state.productionBatches.push(newBatch);
+            renderProductionBatches();
+            calculateResults();
+            saveData();
         }
 
         // Actualizar la interfaz de usuario con los datos del estado
@@ -2624,17 +2650,29 @@
                 });
             });
 
+            // Agregar los gastos adicionales como ítems separados
+            const expenseItems = (state.expenses || []).map((exp, idx) => ({
+                no: rowNumber + idx,
+                descripcion: exp.concepto || 'Gasto adicional',
+                cantidad: 1,
+                baseCost: parseFloat(exp.precio) || 0,
+                isExpense: true
+            }));
+
+            const allItems = [...baseItems, ...expenseItems];
+
             const totalMateriales = baseItems.reduce((sum, item) => sum + item.baseCost, 0);
+            const totalGastos = expenseItems.reduce((sum, item) => sum + item.baseCost, 0);
             const totalManoObra = totalMateriales * (state.calculations.manoObraPct / 100);
             const totalAsistentes = (parseFloat(state.calculations.asistente1) || 0)
                 + (parseFloat(state.calculations.asistente2) || 0)
                 + (parseFloat(state.calculations.asistente3) || 0)
                 + (parseFloat(state.calculations.asistente4) || 0);
-            const totalGastos = state.expenses.reduce((sum, exp) => sum + (parseFloat(exp.precio) || 0), 0);
             const totalCostos = totalMateriales + totalManoObra + totalAsistentes;
             const preparationValues = calculatePreparationFromMargin(totalCostos, state.calculations.rentabilidadPct);
             const subtotalFinal = preparationValues.valorPreparacion;
             const miGanancia = preparationValues.miGanancia;
+            // El precio base ahora es subtotalFinal + totalGastos (ya que los gastos están como ítems)
             const precioBase = subtotalFinal + totalGastos;
 
             let baseImponible = precioBase;
@@ -2666,7 +2704,8 @@
             }
             precioFinal += impuesto2;
 
-            const distributionTarget = baseImponible;
+            // Distribuir el subtotal solo entre los productos/recetas, los gastos ya tienen su valor fijo
+            const distributionTarget = subtotalFinal;
             const distributedItems = baseItems.map((item) => {
                 const weight = totalMateriales > 0
                     ? (item.baseCost / totalMateriales)
@@ -2689,8 +2728,19 @@
                 lastItem.precioUnitario = lastItem.cantidad > 0 ? (lastItem.totalItem / lastItem.cantidad) : 0;
             }
 
+            // Agregar los gastos adicionales como ítems con su valor fijo
+            const distributedExpenseItems = expenseItems.map((item) => ({
+                no: item.no,
+                descripcion: item.descripcion,
+                cantidad: 1,
+                precioUnitario: item.baseCost,
+                totalItem: item.baseCost
+            }));
+
+            const finalItems = [...distributedItems, ...distributedExpenseItems];
+
             return {
-                items: distributedItems,
+                items: finalItems,
                 totals: {
                     subtotal: baseImponible,
                     impuesto,
@@ -2990,6 +3040,11 @@
 
         // Event listeners para manejar interacciones del usuario
         document.addEventListener('DOMContentLoaded', loadData);
+        // Botón para agregar nueva orden de producción
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('addProductionBatch');
+            if (btn) btn.addEventListener('click', addProductionBatch);
+        });
 
         // Botón para guardar datos
         document.getElementById('saveDataBtn').addEventListener('click', saveData);
